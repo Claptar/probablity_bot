@@ -7,12 +7,17 @@ Base = declarative_base()
 
 
 class Exercise(Base):
+    """
+    This class represents an exercise table in the database
+    """
+
     __tablename__ = "exercises"
 
     id = Column(Integer, primary_key=True)
     number = Column(Integer)
     paragraph = Column(String)
-    text = Column(String)
+    problem_text = Column(String)
+    solution_text = Column(String)
 
 
 def main():
