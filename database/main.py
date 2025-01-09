@@ -1,20 +1,7 @@
 from models import Base, engine, Exercise
 from re import Match
-from typing import Dict
-from sqlalchemy.orm import Session
 from parsers import parse_paragraphs, parse_exercises, get_exercise_data
 import config
-
-
-def save_exercise(exercise_data: Dict[str, str]) -> None:
-    """
-    Save exercise to the database
-    Args:
-        exercise_data (Dict[str, str]): exercise data
-    """
-    exercise = Exercise(**exercise_data)
-    with Session(bind=engine) as session:
-        session.add(exercise)
 
 
 def process_paragraphs(filepath: str) -> None:
@@ -33,7 +20,7 @@ def process_paragraphs(filepath: str) -> None:
         exercise_section = paragraph_match.group("exercises") or ""
         for exercise_match in parse_exercises(exercise_section):
             exercise = get_exercise_data(paragraph_match, exercise_match)
-            save_exercise(exercise)
+            Exercise.save(exercise)
 
 
 def main():
