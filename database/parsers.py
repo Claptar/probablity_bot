@@ -3,26 +3,26 @@ from typing import Iterator, Dict
 
 PARAGRAPH_PATTERN = re.compile(
     r"""
-    \#+\s*                                      # One or more '#' followed by whitespace
+    ^\#+[\s\*\^]*                                # One or more '#' followed by whitespace
     (?P<number>[\dI][\.\s]+[\dI])              # Section number (captured)
-    \s+                                         # Required whitespace
-    (?P<title>[\w\s]+)                              # Section title (captured)
-    \n+                                         # One or more newlines
-    (?P<contents>.*?)                           # Main content (captured)
-    (?P<exercises>(?:\#+\s*Exercises\n.*?)?)  # Exercise section (captured)
-    (?=\n\#+\s*[\dI][\.\s]+[\dI]|\Z)              # Lookahead for next section or end
+    \s+                                        # Required whitespace
+    (?P<title>[\w\s]+)                         # Section title (captured)
+    \n+                                        # One or more newlines
+    (?P<contents>.*?)                          # Main content (captured)
+    (?P<exercises>(?:\#+\s*Exercises\n.*?)?)   # Exercise section (captured)
+    (?=^\#+[\s\*\^]*[\dI][\.\s]+[\dI]|\Z)        # Lookahead for next section or end
     """,
     re.VERBOSE | re.DOTALL | re.MULTILINE,
 )
 
 EXERCISE_PATTERN = re.compile(
     r"""
-    (?P<number>\d+)         # Exercise number
-    \.\s+                       # Required whitespace
-    (?P<contents>.*?)  # Contenst of the exercise
-    (?=\n\d+\.|\Z)              # Lookahead for next exercise or end
+    ^(?P<number>\d+)         # Exercise number
+    \.\s+                   # Required whitespace
+    (?P<contents>.*?)       # Contenst of the exercise
+    (?=^\d+\.|\Z)            # Lookahead for next exercise or end
     """,
-    re.VERBOSE | re.DOTALL,
+    re.VERBOSE | re.DOTALL | re.MULTILINE,
 )
 
 
