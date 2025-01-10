@@ -27,17 +27,35 @@ class Exercise(Base):
     number = Column(String, nullable=False)
     paragraph = Column(String, nullable=False)
     contents = Column(String, nullable=False)
-    solution = Column(String, default="No solution")
 
     def __repr__(self) -> str:
-        return f"Exercise(number={self.number}, paragraph={self.paragraph})"
+        return f"Exercise(number={self.number}, paragraph={self.paragraph}"
 
-    @validates("number")
-    def validate_number(self, key, value):
+    @validates("paragraph")
+    def validate_paragraph(self, key, value):
         """
-        Ensure the exercise number is a positive integer.
+        Ensure the exercise paragraph number do not contain "I"
         """
-        return value.replace("I", "1")
+        return value.replace("I", "1").replace(" ", "")
+
+    @classmethod
+    def exists(cls, session: Session, exercise_data: Dict[str, str]) -> bool:
+        """
+        Check if an exercise already exists in the database
+        Args:
+            session (Session): SQLAlchemy session
+            exercise_data (Dict[str, str]): exercise data
+        Returns:
+            bool: True if exercise exists, False otherwise
+        """
+        return (
+            session.query(cls)
+            .filter_by(
+                number=exercise_data["number"], paragraph=exercise_data["paragraph"]
+            )
+            .first()
+            is not None
+        )
 
     @classmethod
     def save(cls, exercise_data: Dict[str, str]):
@@ -48,5 +66,11 @@ class Exercise(Base):
         """
         exercise = Exercise(**exercise_data)
         with Session(bind=engine) as session:
-            session.add(exercise)
+            if not cls.exists(session, exercise_data):
+                session.add(exercise)
+                session.commit()
+            else:
+                print(f"{exercise} already exists in the DB")
+                session.add(exercise)
+                session.commit()
         return exercise
