@@ -1,10 +1,11 @@
-from models import Base, engine, Exercise
+from models import Base, engine, Exercise, Solution
 from re import Match
+from typing import Type
 from parsers import parse_paragraphs, parse_exercises, get_exercise_data
 import config
 
 
-def process_paragraphs(filepath: str) -> None:
+def process_paragraphs(filepath: str, model: Type[Base]) -> None:
     """
     Parse paragraphs from a file and save exercises to the database
     Args:
@@ -17,15 +18,20 @@ def process_paragraphs(filepath: str) -> None:
     # Parse the book paragraph by paragraph and add exercises to the DataBase
     for paragraph_match in parse_paragraphs(text):
         # parse exercise section of the book
-        exercise_section = paragraph_match.group("exercises") or ""
+        exercise_section = (
+            paragraph_match.group("contents")
+            if "Exercises" in paragraph_match.group("title")
+            else paragraph_match.group("exercises") or ""
+        )
         for exercise_match in parse_exercises(exercise_section):
             exercise = get_exercise_data(paragraph_match, exercise_match)
-            Exercise.save(exercise)
+            model.save(exercise)
 
 
 def main():
     Base.metadata.create_all(engine)
-    process_paragraphs(config.BOOK_FILEPATH)
+    process_paragraphs(config.BOOK_FILEPATH, Exercise)
+    process_paragraphs(config.SOLUTIONS_FILEPATH, Solution)
 
 
 if __name__ == "__main__":
