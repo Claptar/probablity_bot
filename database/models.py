@@ -1,7 +1,8 @@
 import config
 from typing import Dict
-from sqlalchemy import create_engine, Integer, String, Column
-from sqlalchemy.orm import declarative_base, Session, validates
+from sqlalchemy import create_engine, Integer, String, Column, ForeignKey
+from sqlalchemy.orm import declarative_base, Session, validates, relationship
+from sqlalchemy.exc import IntegrityError, NoResultFound
 
 
 Base = declarative_base()
@@ -9,9 +10,9 @@ Base = declarative_base()
 engine = create_engine(config.DB_URL)
 
 
-class Exercise(Base):
+class CommonAttributes(Base):
     """
-    Represents an exercise from the book, stored in the database.
+    Represents a table with parsed book, stored in the database
 
     Attributes:
         id: Unique identifier
@@ -21,56 +22,92 @@ class Exercise(Base):
         solution_text: The solution to the exercise
     """
 
-    __tablename__ = "exercises"
+    __abstract__ = True  # This class will not be mapped to a table
 
     id = Column(Integer, primary_key=True)
     number = Column(String, nullable=False)
     paragraph = Column(String, nullable=False)
     contents = Column(String, nullable=False)
 
-    def __repr__(self) -> str:
-        return f"Exercise(number={self.number}, paragraph={self.paragraph}"
-
     @validates("paragraph")
     def validate_paragraph(self, key, value):
-        """
-        Ensure the exercise paragraph number do not contain "I"
-        """
-        return value.replace("I", "1").replace(" ", "")
+        return value.replace("I", "1").replace(" ", "").replace("O", "0")
 
     @classmethod
-    def exists(cls, session: Session, exercise_data: Dict[str, str]) -> bool:
-        """
-        Check if an exercise already exists in the database
-        Args:
-            session (Session): SQLAlchemy session
-            exercise_data (Dict[str, str]): exercise data
-        Returns:
-            bool: True if exercise exists, False otherwise
-        """
+    def exists(cls, session: Session, data: Dict[str, str]) -> bool:
         return (
             session.query(cls)
-            .filter_by(
-                number=exercise_data["number"], paragraph=exercise_data["paragraph"]
-            )
+            .filter_by(number=data["number"], paragraph=data["paragraph"])
             .first()
-            is not None
         )
 
     @classmethod
-    def save(cls, exercise_data: Dict[str, str]):
+    def save(cls, data: Dict[str, str]):
         """
         Save exercise to the database
         Args:
             exercise_data (Dict[str, str]): exercise data
         """
-        exercise = Exercise(**exercise_data)
+        instance = cls(**data)
         with Session(bind=engine) as session:
-            if not cls.exists(session, exercise_data):
-                session.add(exercise)
+            if cls.exists(session, data):
+                raise IntegrityError(
+                    f"{instance} already exists in the DB", params=None, orig=None
+                )
+            session.add(instance)
+            session.commit()
+        return instance
+
+
+class Exercise(CommonAttributes):
+    """
+    Represents an exercise from the book, stored in the database.
+    """
+
+    __tablename__ = "exercises"
+
+    solution = relationship("Solution", back_populates="exercise", uselist=False)
+
+    def __repr__(self) -> str:
+        return f"Exercise(number={self.number}, paragraph={self.paragraph}"
+
+
+class Solution(CommonAttributes):
+    """
+    Represents an exercise from the book, stored in the database.
+    """
+
+    __tablename__ = "solutions"
+
+    exercise_id = Column(Integer, ForeignKey("exercises.id"), nullable=False)
+    exercise = relationship("Exercise", back_populates="solution")
+
+    def __repr__(self) -> str:
+        return f"Solution(number={self.number}, paragraph={self.paragraph}"
+
+    @classmethod
+    def save(cls, data: Dict[str, str]):
+        """
+        Save exercise to the database
+        Args:
+            exercise_data (Dict[str, str]): exercise data
+        """
+        with Session(bind=engine) as session:
+            exercise = (
+                session.query(Exercise)
+                .filter_by(number=data["number"], paragraph=data["paragraph"])
+                .one_or_none()
+            )
+            if exercise:
+                solution = cls(exercise_id=exercise.id, **data)
+                if cls.exists(session, data):
+                    raise IntegrityError(
+                        f"{solution} already exists in the DB", params=None, orig=None
+                    )
+                session.add(solution)
                 session.commit()
+                return solution
             else:
-                print(f"{exercise} already exists in the DB")
-                session.add(exercise)
-                session.commit()
-        return exercise
+                raise NoResultFound(
+                    f"Exercise with number {data['number']} and paragraph {data['paragraph']} not found"
+                )
