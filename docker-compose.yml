@@ -1,0 +1,11 @@
+services:
+  app:
+    build: .
+    container_name: parse_probability_app
+    ports:
+      - "5000:5000"
+    volumes:
+      - .:/app
+    environment:
+      - PYTHONUNBUFFERED=1
+    command: python app/main.py
