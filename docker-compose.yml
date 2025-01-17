@@ -11,4 +11,4 @@ services:
       - DB_URL=sqlite:///app/database.db
     env_file:
       - .env
-    command: python app/app.py
+    command: python app.py
