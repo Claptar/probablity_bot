@@ -10,7 +10,7 @@ COPY . /app
 # Install dependencies using pip from the setup.py and requirements.txt
 RUN pip install --upgrade pip \
     && pip install setuptools \
-    && pip install -e .
+    && pip install .
 
 
 # Make port 5000 available to the world outside this container
@@ -18,6 +18,7 @@ EXPOSE 5000
 
 # Define the environment variable for the container
 ENV PYTHONUNBUFFERED=1
+ENV DB_URL=sqlite:///app/database.db
 
 # Run the application when the container starts
-CMD ["python", "app/main.py"]
+CMD ["python", "app/app.py"]

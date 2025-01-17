@@ -8,4 +8,7 @@ services:
       - .:/app
     environment:
       - PYTHONUNBUFFERED=1
-    command: python app/main.py
+      - DB_URL=sqlite:///app/database.db
+    env_file:
+      - .env
+    command: python app/app.py
