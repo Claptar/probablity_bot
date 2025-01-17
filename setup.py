@@ -6,5 +6,6 @@ setup(
     packages=find_packages(where="."),
     install_requires=[
         "sqlalchemy",
+        "python-telegram-bot",
     ],
 )
