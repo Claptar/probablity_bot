@@ -1,4 +1,11 @@
 from app.config import BOT_TOKEN
+from app.telegram_bot import (
+    help_command,
+    challenge_command,
+    start_command,
+    score_command,
+    leaderboard_command,
+)
 from telegram import Update
 from telegram.ext import (
     Application,
@@ -7,22 +14,6 @@ from telegram.ext import (
     ContextTypes,
     filters,
 )
-
-
-async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text(
-        "Hello! I am a bot that can help you with your probability exercises."
-    )
-
-
-async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text(
-        "I am a Probability Bot. Please look at commands I know: Command1, Command2, Command3"
-    )
-
-
-async def lolkek_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text("Lolkek")
 
 
 async def handle_response(text: str) -> str:
@@ -44,7 +35,9 @@ if __name__ == "__main__":
     # Commands
     application.add_handler(CommandHandler("start", start_command))
     application.add_handler(CommandHandler("help", help_command))
-    application.add_handler(CommandHandler("lolkek", lolkek_command))
+    application.add_handler(CommandHandler("challenge", challenge_command))
+    application.add_handler(CommandHandler("score", score_command))
+    application.add_handler(CommandHandler("leaderboard", leaderboard_command))
 
     # Messages
     application.add_handler(MessageHandler(filters.TEXT, handle_message))
