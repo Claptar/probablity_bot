@@ -1,1 +1,1 @@
-from app.parsers.parsers import get_exercises
+from app.parsers.utils import get_exercises
