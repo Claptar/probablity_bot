@@ -6,9 +6,6 @@ services:
       - "5000:5000"
     volumes:
       - .:/app
-    environment:
-      - PYTHONUNBUFFERED=1
-      - DB_URL=sqlite:///app/database.db
     env_file:
       - .env
     command: python app.py
