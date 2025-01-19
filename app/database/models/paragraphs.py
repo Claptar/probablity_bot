@@ -5,6 +5,7 @@ from sqlalchemy import (
     String,
     Column,
     ForeignKey,
+    UniqueConstraint,
 )
 from sqlalchemy.orm import Session, relationship
 from sqlalchemy.exc import IntegrityError
@@ -29,6 +30,10 @@ class Paragraph(Base):
     number = Column(Integer, nullable=False)
     title = Column(String, nullable=False)
     contents = Column(String)
+
+    __table_args__ = (
+        UniqueConstraint("section_id", "number", name="_paragraph_section_number_uc"),
+    )
 
     section = relationship("Section", back_populates="paragraph")
     exercise = relationship("Exercise", back_populates="paragraph")
