@@ -34,7 +34,7 @@ class CommonAttributes(Base):
     contents = Column(String, nullable=False)
 
     __table_args__ = (
-        UniqueConstraint("number", "paragraph", name="_number_paragraph_uc"),
+        UniqueConstraint("number", "paragraph_id", name="_number_paragraph_uc"),
     )
 
     @classmethod
