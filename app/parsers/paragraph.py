@@ -6,9 +6,9 @@ PARAGRAPH_PATTERN = re.compile(
     ^\#+\s*[^I1]?\s*                                # One or more '#' followed by whitespace
     (?P<number>[\dIO]+[\.\s]+[\dIO]+)              # Section number (captured)
     \s+                                        # Required whitespace
-    (?P<title>[\w\s'-]+)$                         # Section title (captured)
-    (?P<contents>.*?)                          # Main content (captured)
-    (?P<exercises>(?:\#+\s*(?:Exercises|Solutions\sto\sExercises)\s*.*?)?)   # Exercise section (captured)
+    (?P<title>[\w '-]+)$                         # Section title (captured)
+    (?P<contents>(?:.*?)?)                          # Main content (captured)
+    ^(?P<exercises>(?:(?:\#+\s*Exercises|\#+\s*Solutions\sto\sExercises|^\d\.)\s*.*?)?)   # Exercise section (captured)
     (?=^\#+\s*[^I1]?\s*[\dIO]+[\.\s]+[\dIO]+|\Z)        # Lookahead for next section or end
     """,
     re.VERBOSE | re.DOTALL | re.MULTILINE,
