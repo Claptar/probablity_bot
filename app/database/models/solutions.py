@@ -10,10 +10,8 @@ class Solution(CommonAttributes):
 
     __tablename__ = "solutions"
 
-    exercise_id = Column(Integer, ForeignKey("exercises.id"), nullable=False)
-    
     paragraph = relationship("Paragraph", back_populates="solution", uselist=False)
-    exercise = relationship("Exercise", back_populates="solution")
+    exercise = relationship("Exercise", back_populates="solution", uselist=False)
 
     def __repr__(self) -> str:
         return f"Solution(number={self.number}, paragraph={self.paragraph}"

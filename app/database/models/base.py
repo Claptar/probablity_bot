@@ -11,7 +11,21 @@ from sqlalchemy.exc import IntegrityError
 
 
 class Base(DeclarativeBase):
-    pass
+    @classmethod
+    def create(cls, session: Session, data: Dict[str, str]) -> "CommonAttributes":
+        """
+        Create a new instance if it doesn't exist.
+        """
+        instance = cls(**data)
+        session.add(instance)
+        try:
+            session.commit()
+        except IntegrityError:
+            session.rollback()
+            raise IntegrityError(
+                f"{instance} already exists in the DB", params=None, orig=None
+            )
+        return instance
 
 
 class CommonAttributes(Base):
@@ -30,7 +44,7 @@ class CommonAttributes(Base):
 
     id = Column(Integer, primary_key=True)
     number = Column(Integer, nullable=False)
-    paragraph_id = Column(Integer, ForeignKey("paragraphs.id"), nullable=False)
+    paragraph_id = Column(Integer, ForeignKey("paragraphs.id"))
     contents = Column(String, nullable=False)
 
     __table_args__ = (
@@ -38,17 +52,14 @@ class CommonAttributes(Base):
     )
 
     @classmethod
-    def create(cls, session: Session, data: Dict[str, str]) -> "CommonAttributes":
+    def get_by_number_and_paragraph(
+        cls, session: Session, number: str, paragraph: str
+    ) -> Optional["CommonAttributes"]:
         """
-        Create a new instance if it doesn't exist.
+        Retrieve an instance by number and paragraph.
         """
-        instance = cls(**data)
-        session.add(instance)
-        try:
-            session.commit()
-        except IntegrityError:
-            session.rollback()
-            raise IntegrityError(
-                f"{instance} already exists in the DB", params=None, orig=None
-            )
-        return instance
+        return (
+            session.query(cls)
+            .filter_by(number=number, paragraph=paragraph)
+            .one_or_none()
+        )

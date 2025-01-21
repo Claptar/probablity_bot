@@ -35,6 +35,6 @@ class Paragraph(Base):
         UniqueConstraint("section_id", "number", name="_paragraph_section_number_uc"),
     )
 
-    section = relationship("Section", back_populates="paragraph")
+    section = relationship("Section", back_populates="paragraph", uselist=False)
     exercise = relationship("Exercise", back_populates="paragraph")
     solution = relationship("Solution", back_populates="paragraph")
