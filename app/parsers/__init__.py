@@ -1,1 +1,4 @@
-from app.parsers.utils import get_exercises
+from app.parsers.utils import *
+from app.parsers.exercise import *
+from app.parsers.paragraph import *
+from app.parsers.section import *
