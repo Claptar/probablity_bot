@@ -1,5 +1,6 @@
 import re
-from typing import Iterator
+from typing import Iterator, Dict, Tuple, Union
+from app.paersers.utils import normalize_number
 
 PARAGRAPH_PATTERN = re.compile(
     r"""
@@ -25,3 +26,54 @@ def parse_paragraphs(text: str) -> Iterator[re.Match]:
         Iterator[re.Match]: iterator of paragraph matches
     """
     return PARAGRAPH_PATTERN.finditer(text)
+
+
+def get_section_and_paragraph_numbers(paragraph_match: re.Match) -> Tuple[int, int]:
+    """
+    Split the full paragraph number into section and paragraph numbers
+    Args:
+        paragraph_match (re.Match): paragraph Match object
+
+    Returns:
+        Tuple[str, str]: section and paragraph numbers
+    """
+    full_number = paragraph_match.group("number")
+    normalized_full_number = normalize_number(full_number)
+    section_number, paragraph_number = normalized_full_number.split(".")
+    return section_number, paragraph_number
+
+
+def get_paragraph_data(paragraph_match: re.Match) -> Dict[str, str]:
+    """
+    Convert paragraph match-groups to dict with paragraph data
+    Args:
+        paragraph_match (re.Match): paragraph Match object
+
+    Returns:
+        Dict[str, str]: paragraph data dict
+    """
+    _, paragraph_number = get_section_and_paragraph_numbers(paragraph_match)
+
+    # Make a dict with paragraph data
+    paragraph_data = {
+        "number": paragraph_number,
+        "title": paragraph_match.group("title"),
+        "contents": paragraph_match.group("contents"),
+    }
+    return paragraph_data
+
+
+def get_paragraphs(text: str) -> Iterator[Tuple[int, str, Dict[str, str]]]:
+    """
+    Get paragraphs from a book text
+    Args:
+        text (str): book text in markdown format
+    Yields:
+        Iterator[Tuple[int, str, Dict[str, str]]]: section number, exercise section, and paragraph data
+    """
+    # Parse the book paragraph by paragraph
+    for paragraph_match in parse_paragraphs(text):
+        section_number, _ = get_section_and_paragraph_numbers(paragraph_match)
+        paragraph_data = get_paragraph_data(paragraph_match)
+        exercise_section = paragraph_match.group("exercises")
+        yield section_number, exercise_section, paragraph_data

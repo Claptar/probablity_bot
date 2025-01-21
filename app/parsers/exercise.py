@@ -1,5 +1,6 @@
 import re
-from typing import Iterator
+from typing import Iterator, Tuple, Dict
+from app.parsers.paragraph import get_paragraphs
 
 
 EXERCISE_PATTERN = re.compile(
@@ -23,3 +24,17 @@ def parse_exercises(text: str) -> Iterator[re.Match]:
         Iterator[re.Match]: iterator of exercise matches
     """
     return EXERCISE_PATTERN.finditer(text)
+
+
+def get_exercises(text: str) -> Iterator[Tuple[str, Dict[str, str]]]:
+    """
+    Get paragraphs from a book text
+    Args:
+        text (str): book text in markdown format
+
+    Yields:
+    """
+    for paragrapg_number, exercise_section, _ in get_paragraphs(text):
+        exercise = parse_exercises(exercise_section)
+        for exercise_match in exercise:
+            yield paragrapg_number, exercise_match.groupdict()
