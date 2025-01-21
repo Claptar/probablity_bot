@@ -19,23 +19,6 @@ def normalize_number(number: str) -> str:
     return number.replace(" ", "").translate(str.maketrans({"I": "1", "O": "0"}))
 
 
-def get_exercise_data(
-    paragraph_match: re.Match, exercise_match: re.Match
-) -> Dict[str, str]:
-    """
-    Convert paragraph and exercise match-groups to dict with exercise data
-    Args:
-        paragraph_match (re.Match): paragraph Match object
-        exercise_match (re.Match): exercise Match object
-
-    Returns:
-        Dict[str, str]: exercise data dict
-    """
-    paragraph_number = paragraph_match.group("number")
-    paragraph_number = normalize_number(paragraph_number)
-    return dict(paragraph=paragraph_number, **exercise_match.groupdict())
-
-
 def get_exercises(filepath: str) -> Iterator[re.Match]:
     """
     Parse paragraphs from a file and save exercises to the database
