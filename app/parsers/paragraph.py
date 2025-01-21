@@ -1,6 +1,6 @@
 import re
-from typing import Iterator, Dict, Tuple, Union
-from app.paersers.utils import normalize_number
+from typing import Iterator, Dict, Tuple
+from app.parsers.utils import normalize_number
 
 PARAGRAPH_PATTERN = re.compile(
     r"""
