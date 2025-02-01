@@ -3,17 +3,15 @@ from re import Match
 from typing import Type, Iterator, Tuple
 from app.database.models import Base, Exercise, Solution, Section, Paragraph
 from app.database.quieries.utils import session_scope
+from app.database.quieries.database_init import initialize_database
 from sqlalchemy.orm import Session
 from sqlalchemy.orm.exc import NoResultFound
-from sqlalchemy import create_engine
 from app.parsers import (
     parse_sections,
     get_paragraphs,
     parse_exercises,
     get_exercises,
 )
-
-engine = create_engine(config.DATABASE_URL)
 
 
 def populate_sections(text: str, session: Session) -> None:
@@ -38,7 +36,7 @@ def populate_paragraphs(text: str) -> Iterator[Tuple[Paragraph, str, Session]]:
         Iterator[Tuple[Paragraph, str, Session]]: exercise section and session
     """
     for section_number, solution_section, paragraph_data in get_paragraphs(text):
-        with session_scope(engine) as session:
+        with session_scope() as session:
             paragraph = Paragraph.create(
                 session, section_number=section_number, paragraph_data=paragraph_data
             )
@@ -64,7 +62,7 @@ def populate_exercises(text: str) -> None:
         text (str): text in markdown format
     """
     for section_number, paragraph_number, exercise_data in get_exercises(text):
-        with session_scope(engine) as session:
+        with session_scope() as session:
             exercise = Exercise.create(
                 session, section_number, paragraph_number, exercise_data
             )
@@ -82,7 +80,7 @@ def process_solution_mannual(filepath: str) -> None:
         text = file.read()
 
     # Populate sections
-    with session_scope(engine) as session:
+    with session_scope() as session:
         populate_sections(text, session)
 
     # Populate paragraphs and solutions
@@ -104,10 +102,7 @@ def process_book(filepath: str) -> None:
     populate_exercises(text)
 
 
-def set_up_database(bookpath: str, solutionpath: str) -> None:
-    # Initialize the database and create tables
-    Base.metadata.create_all(engine)
-
+def populate_database(bookpath: str, solutionpath: str) -> None:
     # Process solution mannual to populate sections, paragraphs and solutions tables
     process_solution_mannual(solutionpath)
 
@@ -116,4 +111,5 @@ def set_up_database(bookpath: str, solutionpath: str) -> None:
 
 
 if __name__ == "__main__":
-    set_up_database(config.BOOK_FILEPATH, config.SOLUTIONS_FILEPATH)
+    initialize_database()
+    populate_database(config.BOOK_FILEPATH, config.SOLUTIONS_FILEPATH)
