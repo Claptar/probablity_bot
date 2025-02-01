@@ -14,6 +14,7 @@ from telegram.ext import (
     ContextTypes,
     filters,
 )
+from app.utils.logging_config import setup_logging
 
 
 async def handle_response(text: str) -> str:
@@ -30,6 +31,9 @@ async def handle_error(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 if __name__ == "__main__":
+    # set up logging
+    setup_logging()
+
     application = Application.builder().token(BOT_TOKEN).build()
 
     # Commands
