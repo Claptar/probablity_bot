@@ -4,15 +4,15 @@ from typing import Iterator
 
 SECTION_PATTERN = re.compile(
     r"""
-    ^\#\#\s+Chapter\s(?P<number>\d{1,2})$  # Section number
-    \n+                                 # Required empty lines
-    ^\#\#\s+(?P<title>[\w ]+)$        # Section title
+    ^\#\#\s+Chapter\s(?P<number>\d{1,2})$   # Section number
+    \n+                                     # Required empty lines
+    ^\#\#\s+(?P<title>[\w ]+)$              # Section title
     """,
     re.VERBOSE | re.MULTILINE,
 )
 
 
-def parse_section(text: str) -> Iterator[re.Match]:
+def parse_sections(text: str) -> Iterator[re.Match]:
     """
     Parse sections from a solution mannual
     Args:

@@ -1,10 +1,4 @@
-import re
-from typing import Dict, Iterator
-from app.parsers.paragraph import parse_paragraphs
-from app.parsers.exercise import parse_exercises
-
-
-def normalize_number(number: str) -> str:
+def normalise_number(number: str) -> str:
     """
     Validates and normalizes the paragraph field by:
     - Removing spaces

@@ -34,7 +34,7 @@ def get_exercises(text: str) -> Iterator[Tuple[str, Dict[str, str]]]:
 
     Yields:
     """
-    for paragrapg_number, exercise_section, _ in get_paragraphs(text):
+    for section_number, exercise_section, paragraph_data in get_paragraphs(text):
         exercise = parse_exercises(exercise_section)
         for exercise_match in exercise:
-            yield paragrapg_number, exercise_match.groupdict()
+            yield section_number, paragraph_data["number"], exercise_match.groupdict()

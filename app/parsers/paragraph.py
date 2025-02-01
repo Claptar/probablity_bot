@@ -1,6 +1,6 @@
 import re
 from typing import Iterator, Dict, Tuple
-from app.parsers.utils import normalize_number
+from app.parsers.utils import normalise_number
 
 PARAGRAPH_PATTERN = re.compile(
     r"""
@@ -9,7 +9,7 @@ PARAGRAPH_PATTERN = re.compile(
     \s+                                        # Required whitespace
     (?P<title>[\w '-]+)$                         # Section title (captured)
     (?P<contents>(?:.*?)?)                          # Main content (captured)
-    ^(?P<exercises>(?:(?:\#+\s*Exercises|\#+\s*Solutions\sto\sExercises|^\d\.)\s*.*?)?)   # Exercise section (captured)
+    (?P<exercises>(?:(?:^\#+\s*Exercises|^\#+\s*Solutions\sto\sExercises|(?<![\.\:\$]\n\n)(?<![\.\:\$]\n)^\d\.)\s*.*?)?)   # Exercise section (captured)
     (?=^\#+\s*[^I1]?\s*[\dIO]+[\.\s]+[\dIO]+|\Z)        # Lookahead for next section or end
     """,
     re.VERBOSE | re.DOTALL | re.MULTILINE,
@@ -38,7 +38,7 @@ def get_section_and_paragraph_numbers(paragraph_match: re.Match) -> Tuple[int, i
         Tuple[str, str]: section and paragraph numbers
     """
     full_number = paragraph_match.group("number")
-    normalized_full_number = normalize_number(full_number)
+    normalized_full_number = normalise_number(full_number)
     section_number, paragraph_number = normalized_full_number.split(".")
     return section_number, paragraph_number
 
