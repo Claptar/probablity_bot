@@ -8,7 +8,8 @@ from sqlalchemy import (
     UniqueConstraint,
 )
 from sqlalchemy.orm import Session, relationship
-from sqlalchemy.exc import IntegrityError
+from sqlalchemy.exc import IntegrityError, NoResultFound
+from app.database.models.sections import Section
 
 
 class Paragraph(Base):
@@ -38,3 +39,23 @@ class Paragraph(Base):
     section = relationship("Section", back_populates="paragraph", uselist=False)
     exercise = relationship("Exercise", back_populates="paragraph")
     solution = relationship("Solution", back_populates="paragraph")
+
+    def create(
+        session: Session, section_number: int, paragraph_data: Dict[str, str]
+    ) -> None:
+        """
+        Create a paragraph in the database
+        Args:
+            session (Session): database session
+            section_number (int): section number
+            paragraph_data (Dict[str, str]): paragraph data
+        Returns:
+            Paragraph: paragraph object
+        """
+        section = session.query(Section).filter_by(number=section_number).one_or_none()
+        if not section:
+            raise NoResultFound(f"Section {section_number} not found in the database")
+        paragraph = Paragraph(section_id=section.id, **paragraph_data)
+        session.add(paragraph)
+        session.commit()
+        return paragraph
