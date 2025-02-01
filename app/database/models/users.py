@@ -1,4 +1,4 @@
-from typing import Dict, Optional
+from typing import Dict, Type
 from app.database.models.base import Base
 from sqlalchemy import (
     Integer,
@@ -6,11 +6,11 @@ from sqlalchemy import (
     Column,
     ForeignKey,
 )
-from sqlalchemy.orm import Session, relationship
-from sqlalchemy.exc import IntegrityError
-from app import config
-from sqlalchemy import create_engine
+from sqlalchemy.orm import relationship
 from app.database.quieries.utils import session_scope
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class User(Base):
@@ -30,12 +30,15 @@ class User(Base):
     id = Column(Integer, primary_key=True)
     telegram_id = Column(String, nullable=False)
     first_name = Column(String, nullable=True)
-    username = Column(String, nullable=False)
+    username = Column(String, nullable=True)
+    score = Column(Integer, default=0)
     last_trial_id = Column(Integer, ForeignKey("exercises.id"), nullable=True)
 
     exercise = relationship("Exercise")
+    solved_exercises = relationship("SolvedExercise", back_populates="user")
 
-    def create(user_data: Dict[str, str]) -> "User":
+    @classmethod
+    def create(cls: Type["User"], **user_data: Dict[str, str]) -> "User":
         """
         Create a new user in the database
         Args:
@@ -43,8 +46,46 @@ class User(Base):
         Returns:
             User: created user
         """
-        engine = create_engine(config.DATABASE_URL)
-        with session_scope(engine) as session:
-            user = User(**user_data)
+
+        logger.info(f"Creating a new user with data: {user_data}")
+
+        # check if there is telegram_id in the user_data
+        if "telegram_id" not in user_data.keys():
+            raise ValueError("Telegram id is required to create a user")
+
+        with session_scope() as session:
+            # check if the user already exists in the database
+            user = (
+                session.query(cls)
+                .filter_by(telegram_id=user_data["telegram_id"])
+                .one_or_none()
+            )
+            if user:
+                logger.warning(
+                    f"User {user_data} exists in the database. Updating the user data"
+                )
+                user.first_name = user_data.get("first_name", None)
+                user.username = user_data.get("username", None)
+            else:
+                user = cls(**user_data)
+
+            # add the user to the table
             session.add(user)
         return user
+
+    @classmethod
+    def update_exercise(cls, telegram_id: int, exercise_id: int) -> None:
+        """
+        Update the last exercise that the user tried
+        Args:
+            telegram_id (int): Telegram's user id
+            exercise_id (int): Exercise id
+        """
+        with session_scope() as session:
+            user = session.query(cls).filter_by(telegram_id=telegram_id).one_or_none()
+            if user:
+                user.last_trial_id = exercise_id
+            else:
+                raise ValueError(
+                    f"User with telegram id {telegram_id} not found in the database"
+                )

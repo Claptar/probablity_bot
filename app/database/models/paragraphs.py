@@ -1,4 +1,4 @@
-from typing import Dict, Optional
+from typing import Dict, Type
 from app.database.models.base import Base
 from sqlalchemy import (
     Integer,
@@ -40,8 +40,12 @@ class Paragraph(Base):
     exercise = relationship("Exercise", back_populates="paragraph")
     solution = relationship("Solution", back_populates="paragraph")
 
+    @classmethod
     def create(
-        session: Session, section_number: int, paragraph_data: Dict[str, str]
+        cls: Type["Paragraph"],
+        session: Session,
+        section_number: int,
+        paragraph_data: Dict[str, str],
     ) -> None:
         """
         Create a paragraph in the database
@@ -55,7 +59,7 @@ class Paragraph(Base):
         section = session.query(Section).filter_by(number=section_number).one_or_none()
         if not section:
             raise NoResultFound(f"Section {section_number} not found in the database")
-        paragraph = Paragraph(section_id=section.id, **paragraph_data)
+        paragraph = cls(section_id=section.id, **paragraph_data)
         session.add(paragraph)
         session.commit()
         return paragraph

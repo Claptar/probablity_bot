@@ -4,7 +4,7 @@ from sqlalchemy import Column, Integer, ForeignKey
 from app.database.models.paragraphs import Paragraph
 from app.database.models.solutions import Solution
 from app.database.models.sections import Section
-from typing import Dict
+from typing import Dict, Type
 
 
 class Exercise(CommonAttributes):
@@ -20,11 +20,14 @@ class Exercise(CommonAttributes):
 
     paragraph = relationship("Paragraph", back_populates="exercise", uselist=False)
     solution = relationship("Solution", back_populates="exercise", uselist=False)
+    solved_exercises = relationship("SolvedExercise", back_populates="exercise")
 
     def __repr__(self) -> str:
         return f"Exercise(number={self.number}, paragraph={self.paragraph}"
 
+    @classmethod
     def create(
+        cls: Type["Exercise"],
         session,
         section_number: str,
         paragraph_number: str,
@@ -50,7 +53,7 @@ class Exercise(CommonAttributes):
             .filter_by(paragraph_id=paragraph.id, number=exercise_data["number"])
             .one_or_none()
         )
-        exercise = Exercise(
+        exercise = cls(
             paragraph_id=paragraph.id,
             solution_id=solution.id if solution else None,
             **exercise_data,
