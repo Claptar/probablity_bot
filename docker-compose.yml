@@ -6,6 +6,9 @@ services:
       - "5000:5000"
     volumes:
       - .:/app
-    env_file:
-      - .env
+    environment:
+      - DB_URL=${DB_URL}
+      - BOOK_FILEPATH=${BOOK_FILEPATH}
+      - SOLUTIONS_FILEPATH=${SOLUTIONS_FILEPATH}
+      - BOT_TOKEN=${BOT_TOKEN}
     command: python app.py

@@ -7,14 +7,26 @@ WORKDIR /app
 # Copy the current directory contents into the container at /app
 COPY . /app
 
+
+# Install the minimal LaTeX distribution and poppler-utils
+#   texlive-latex-base: Minimal TeX Live for basic latex -> PDF
+#   poppler-utils: for pdftoppm (PDF -> image conversions)
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+    texlive-latex-base \
+    poppler-utils \
+    && rm -rf /var/lib/apt/lists/*
+
+
 # Install dependencies using pip from the setup.py and requirements.txt
 RUN pip install --upgrade pip \
     && pip install setuptools \
     && pip install .
 
 
-# Make port 5000 available to the world outside this container
-EXPOSE 5000
+# Create the database
+RUN ls .
+RUN python app/database/quieries/database_populate.py
 
 # Run the application when the container starts
 CMD ["python", "app.py"]

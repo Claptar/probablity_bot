@@ -7,5 +7,6 @@ setup(
     install_requires=[
         "sqlalchemy",
         "python-telegram-bot",
+        "pyyaml",
     ],
 )
