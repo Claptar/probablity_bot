@@ -1,13 +1,13 @@
-from telegram import Update, ReplyKeyboardMarkup, ReplyKeyboardRemove
-from telegram.constants import ParseMode
-from telegram.ext import ContextTypes
-from string import Template
-from app.database.models import User
-from app.database.quieries.queries import get_random_exercise
-from app.utils import latex_to_png
+import os
 import logging
 import tempfile
-import os
+from string import Template
+from telegram import Update, ReplyKeyboardMarkup, ReplyKeyboardRemove
+from telegram.constants import ParseMode
+from telegram.ext import ContextTypes, ConversationHandler
+from app.database.models import User, SolvedExercise
+from app.database.quieries.queries import get_random_exercise
+from app.utils import latex_to_png
 
 START_MESSAGE = r"""
 🔥 *The Scroll Has Spoken* 🔥
@@ -110,6 +110,15 @@ async def challenge_command(update: Update, context: ContextTypes.DEFAULT_TYPE) 
 
 
 async def challenge_response(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """
+    This function handles the response from the user after /challengde command
+    Args:
+        update (Update): Telegram update object
+        context (ContextTypes.DEFAULT_TYPE): Telegram context object
+
+    Returns:
+        _type_: _description_
+    """
     match update.message.text:
         case "Next trial":
             await challenge_command(update, context)
@@ -120,8 +129,7 @@ async def challenge_response(update: Update, context: ContextTypes.DEFAULT_TYPE)
             # Send the response to the user
             reply_keyboard = [["Next trial", "Give me some rest"]]
             await update.message.reply_text(
-                "Not half bad! You recieve 1 casuality point🎲",
-                reply_markup=ReplyKeyboardRemove(),
+                "Not half bad! You recieve 1 casuality point🎲"
             )
             await update.message.reply_text(
                 "Another trial awaits you🌀",
@@ -135,7 +143,6 @@ async def challenge_response(update: Update, context: ContextTypes.DEFAULT_TYPE)
             return "SOLVED"
         case "Give me some rest":
             response = "Hmm.. Seems like you need to restore your energy. Fine...🌌"
-            await update.message.reply_text(response)
             await update.message.reply_text(
                 response, reply_markup=ReplyKeyboardRemove()
             )
@@ -143,11 +150,23 @@ async def challenge_response(update: Update, context: ContextTypes.DEFAULT_TYPE)
 
 
 async def score_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """
+    Score command handler
+    Args:
+        update (Update): Telegram update object
+        context (ContextTypes.DEFAULT_TYPE): Telegram context object
+    """
     score = User.user_score(update.effective_user.id)
     formated_message = SCORE_MESSAGE.substitute(value=score)
     await update.message.reply_text(formated_message, parse_mode=ParseMode.MARKDOWN_V2)
 
 
 async def leaderboard_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """
+    Leaderboard command handler
+    Args:
+        update (Update): Telegram update object
+        context (ContextTypes.DEFAULT_TYPE): Telegram context object
+    """
     leaderboard = User.get_top_users()
     await update.message.reply_text(leaderboard, parse_mode=ParseMode.MARKDOWN_V2)
