@@ -1,6 +1,7 @@
 # Use an official Python runtime as a parent image
 FROM python:3.11-slim
 
+
 # Set the working directory in the container
 WORKDIR /app
 
@@ -24,9 +25,9 @@ RUN pip install --upgrade pip \
     && pip install .
 
 
-# Create the database
-RUN ls .
-RUN python app/database/quieries/database_populate.py
+# Set ENTRYPOINT to our script
+RUN chmod +x /app/docker/entrypoint.sh
+ENTRYPOINT ["/app/docker/entrypoint.sh"]
 
 # Run the application when the container starts
 CMD ["python", "app.py"]

@@ -1,14 +1,17 @@
 services:
   app:
-    build: .
-    container_name: parse_probability_app
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        DB_URL: ${DB_URL}
+        BOOK_FILEPATH: ${BOOK_FILEPATH}
+        SOLUTIONS_FILEPATH: ${SOLUTIONS_FILEPATH}
+    container_name: telegram-bot
     ports:
       - "5000:5000"
     volumes:
       - .:/app
-    environment:
-      - DB_URL=${DB_URL}
-      - BOOK_FILEPATH=${BOOK_FILEPATH}
-      - SOLUTIONS_FILEPATH=${SOLUTIONS_FILEPATH}
-      - BOT_TOKEN=${BOT_TOKEN}
+    env_file:
+      - docker/.env
     command: python app.py
