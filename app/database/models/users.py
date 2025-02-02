@@ -1,12 +1,7 @@
-from typing import Dict, Type
+from typing import Dict, Type, List
 from app.database.models.base import Base
-from sqlalchemy import (
-    Integer,
-    String,
-    Column,
-    ForeignKey,
-)
-from sqlalchemy.orm import relationship
+from sqlalchemy import Integer, String, Column, ForeignKey, desc
+from sqlalchemy.orm import relationship, joinedload
 from app.database.quieries.utils import session_scope
 import logging
 
@@ -91,3 +86,57 @@ class User(Base):
                 raise ValueError(
                     f"User with telegram id {telegram_id} not found in the database"
                 )
+
+    @classmethod
+    def user_score(cls, telegram_id: int) -> int:
+        """
+        Get the user's score
+        Args:
+            telegram_id (int): Telegram's user id
+        Returns:
+            int: User's score
+        """
+        with session_scope() as session:
+            user = (
+                session.query(cls)
+                .options(joinedload(cls.solved_exercises))
+                .filter_by(telegram_id=telegram_id)
+                .one_or_none()
+            )
+            if user:
+                return user.score
+            else:
+                raise ValueError(
+                    f"User with telegram id {telegram_id} not found in the database"
+                )
+
+    @staticmethod
+    def _userlist_to_leaderboard(userlist: List["User"]) -> str:
+        """
+        Convert a list of users to a leaderboard string
+        Args:
+            userlist (List[User]): List of users
+        Returns:
+            str: Leaderboard string
+        """
+        emoji_list = ["🥇", "🥈", "🥉"] + ["🔹"] * 7
+        leaderboard = [
+            f"{emoji_list[i]} @{user.username}: *{user.score}{'s' if user.score > 1 else ''} points*"
+            for i, user in enumerate(userlist)
+        ]
+        header = "💥*Strongest challengers*💥\n\n"
+        leaderboard = header + "\n".join(leaderboard)
+        return leaderboard
+
+    @classmethod
+    def get_top_users(cls, limit: int = 7):
+        """
+        Get the top users with the highest scores
+        Args:
+            limit (int): Number of top users to retrieve
+        Returns:
+            List[User]: List of top users
+        """
+        with session_scope() as session:
+            top_users = session.query(cls).order_by(desc(cls.score)).limit(limit).all()
+            return cls._userlist_to_leaderboard(top_users)
