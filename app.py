@@ -5,25 +5,19 @@ from app.telegram_bot import (
     start_command,
     score_command,
     leaderboard_command,
+    handle_message,
+    challenge_response,
 )
 from telegram import Update
 from telegram.ext import (
     Application,
+    ConversationHandler,
     CommandHandler,
     MessageHandler,
     ContextTypes,
     filters,
 )
 from app.utils.logging_config import setup_logging
-
-
-async def handle_response(text: str) -> str:
-    return text[::-1]
-
-
-async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    response = await handle_response(update.message.text)
-    await update.message.reply_text(response)
 
 
 async def handle_error(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -36,12 +30,37 @@ if __name__ == "__main__":
 
     application = Application.builder().token(BOT_TOKEN).build()
 
+    # Cinversation handler
+    conversation_handler = ConversationHandler(
+        entry_points=[CommandHandler("challenge", challenge_command)],
+        states={
+            "TRIAL": [
+                MessageHandler(
+                    filters.Regex("^(Next trial|Solved it!|Give me some rest)$"),
+                    challenge_response,
+                )
+            ],
+            "SOLVED": [
+                MessageHandler(
+                    filters.Regex("^(Next trial|Give me some rest)$"),
+                    challenge_response,
+                )
+            ],
+        },
+        fallbacks=[
+            CommandHandler("help", help_command),
+            CommandHandler("score", score_command),
+            CommandHandler("leaderboard", leaderboard_command),
+            MessageHandler(filters.TEXT, handle_message),
+        ],
+    )
+
     # Commands
     application.add_handler(CommandHandler("start", start_command))
     application.add_handler(CommandHandler("help", help_command))
-    application.add_handler(CommandHandler("challenge", challenge_command))
     application.add_handler(CommandHandler("score", score_command))
     application.add_handler(CommandHandler("leaderboard", leaderboard_command))
+    application.add_handler(conversation_handler)
 
     # Messages
     application.add_handler(MessageHandler(filters.TEXT, handle_message))
