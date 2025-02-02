@@ -3,11 +3,6 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-      args:
-        DB_URL: ${DB_URL}
-        BOOK_FILEPATH: ${BOOK_FILEPATH}
-        SOLUTIONS_FILEPATH: ${SOLUTIONS_FILEPATH}
-    image: telegram-bot:latest
     container_name: telegram-bot
     ports:
       - "5000:5000"
