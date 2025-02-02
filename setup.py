@@ -8,6 +8,5 @@ setup(
         "sqlalchemy",
         "python-telegram-bot",
         "pyyaml",
-        "matplotlib"
     ],
 )

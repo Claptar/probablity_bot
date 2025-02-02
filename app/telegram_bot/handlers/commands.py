@@ -4,8 +4,9 @@ from telegram.ext import ContextTypes
 from string import Template
 from app.database.models import User
 from app.database.quieries.queries import get_random_exercise
-from app.utils import split_text_smart, render_math_image
-from tempfile import NamedTemporaryFile
+from app.utils import latex_to_png
+import logging
+import tempfile 
 import os
 
 START_MESSAGE = r"""
@@ -80,19 +81,21 @@ async def challenge_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # Update user's current exercise
     User.update_exercise(update.effective_user.id, exercise_id)
 
-    # Reformat text
-    reformatted_text = split_text_smart(exercise_text)
+    # Render exercise image
+    logging.info(f"Rendering LaTeX to PNG for exercise: {exercise_id}")
+    image_path = tempfile.mktemp(suffix='.png')
+    latex_to_png(exercise_text, image_path)
 
-    # Render math image and send it to the user
-    with NamedTemporaryFile(suffix=".png", dir=".", delete=False) as image_path:
-        render_math_image(reformatted_text, output_file=image_path.name)
-        await update.message.reply_text(
-            CHALLENGE_MESSAGE, parse_mode=ParseMode.MARKDOWN_V2
-        )
-        await update.message.reply_photo(
-            photo=image_path.name, caption=f"Section: {exercise_title}"
-        )
-        os.remove(image_path.name)
+    # Send the exercise to the user
+    await update.message.reply_text(
+        CHALLENGE_MESSAGE, parse_mode=ParseMode.MARKDOWN_V2
+    )
+    await update.message.reply_photo(
+        photo=image_path, caption=f"Section: {exercise_title}"
+    )
+    
+    # Remove the image
+    os.remove(image_path)
 
 
 async def score_command(update: Update, context: ContextTypes.DEFAULT_TYPE):

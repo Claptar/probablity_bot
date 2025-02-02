@@ -14,7 +14,7 @@ COPY . /app
 #   poppler-utils: for pdftoppm (PDF -> image conversions)
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
-    texlive-latex-base \
+    texlive-latex-extra \
     poppler-utils \
     && rm -rf /var/lib/apt/lists/*
 

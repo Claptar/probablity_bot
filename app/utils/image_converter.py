@@ -1,68 +1,56 @@
-import re
-import matplotlib.pyplot as plt
-import logging
 import os
+import shutil
+import subprocess
+import tempfile
+from string import Template
+import logging
 
 
-def split_text_smart(text: str, line_length: int = 60) -> str:
+def latex_to_png(latex_snippet, output_png="output.png"):
     """
-    Split text into lines of a certain length, while avoiding breaking LaTeX-style math equations
+    Convert a LaTeX snippet (string) into a cropped PNG
     Args:
-        text (str): Text to split
-        line_length (int, optional): Maximum line length. Defaults to 60.
-
-    Returns:
-        str: Splited text
+        latex_snippet (str): LaTeX code to render
+        output_png (str): Output PNG file path
     """
-    matches = re.finditer(r"\$.*?\$", text)
-    equation_spans = [match.span() for match in matches]
+    # Create a minimal LaTeX document template.
+    # Using the 'standalone' or 'preview' class helps produce tightly cropped output.
+    doc_template = Template(r"""
+    \documentclass[preview,border={0.5cm 2cm 0.5cm 2cm}]{standalone}
+    \usepackage{amsmath,amssymb}
+    \begin{document}
+    \vspace*{1cm}  % Add vertical space at the top
+    $latex_snippet
+    \vspace*{1cm}  % Add vertical space at the top
+    \end{document}
+    """)
+    latex_document = doc_template.substitute(latex_snippet=latex_snippet)
 
-    check_loc = lambda loc, span: loc > span[0] and loc < span[1]
+    with tempfile.TemporaryDirectory() as tmpdir:
+        tex_path = os.path.join(tmpdir, "temp.tex")
+        pdf_name = "temp.pdf"
 
-    valid_space_positions = [
-        i
-        for i, char in enumerate(text)
-        if all(not check_loc(i, span) for span in equation_spans) and char == " "
-    ]
-    new_line_positions = [
-        pos
-        for i, pos in enumerate(valid_space_positions)
-        if i > 0 and pos % line_length < valid_space_positions[i - 1] % line_length
-    ]
+        # Write the LaTeX source to a temporary file
+        with open(tex_path, "w") as f:
+            f.write(latex_document)
 
-    for pos in new_line_positions:
-        text = text[:pos] + "\n" + text[pos + 1 :]
-    return text
+        # Run pdflatex (or xelatex)
+        # "--interaction=nonstopmode" avoids user prompts on errors
+        subprocess.run(
+            ["pdflatex", "--interaction=nonstopmode", tex_path],
+            check=True,
+            cwd=tmpdir
+        )
 
+        # Convert cropped PDF to PNG
+        # "-density" can be adjusted for higher/lower resolution (e.g., 150, 300, 600)
+        subprocess.run(
+            ["pdftoppm", "-png", "-r", "300", pdf_name, 'output'],
+            check=True,
+            cwd=tmpdir
+        )
 
-def render_math_image(text: str, output_file: str, dpi: int = 300):
-    """
-    Render a LaTeX-style math equation to an image
-    Args:
-        text (str): Math equation in LaTeX-style
-        output_file (str): Output file path
-        dpi (int, optional): Image resolution. Defaults to 300.
-    """
-    logging.info(f"Rendering text to image: {text}")
-    plt.rcParams.update(
-        {
-            "text.usetex": False,  # Disable external LaTeX
-            "mathtext.fontset": "stix",  # Use a built-in math font
-            "font.family": "serif",
-            "font.size": 14,
-        }
-    )
+        # Rename the output file to the desired name
+        shutil.move(os.path.join(tmpdir, 'output-1.png'), output_png)
 
-    fig, ax = plt.subplots(figsize=(8, 6))
-    ax.text(0.5, 0.5, text, fontsize=14, ha="center", va="center", ma="left")
-    ax.axis("off")
-
-    plt.savefig(
-        output_file, dpi=dpi, bbox_inches="tight", transparent=True, pad_inches=0.2
-    )
-    plt.close(fig)
-    if os.path.getsize(output_file) == 0:
-        logging.error("Rendered image file is empty")
-        raise ValueError("Rendered image file is empty")
-    else:
-        logging.info(f"Image successfully saved to {output_file}")
+    logging.info(f"Converted LaTeX to PNG: {output_png}")
