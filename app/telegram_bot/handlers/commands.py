@@ -2,6 +2,11 @@ from telegram import Update
 from telegram.constants import ParseMode
 from telegram.ext import ContextTypes
 from string import Template
+from app.database.models import User
+from app.database.quieries.queries import get_random_exercise
+from app.utils import split_text_smart, render_math_image
+from tempfile import NamedTemporaryFile
+import os
 
 START_MESSAGE = r"""
 🔥 *The Scroll Has Spoken* 🔥
@@ -10,7 +15,8 @@ The moment you unfurled the scroll, your fate was sealed\. By seeking the power 
 
 "_*Seeker*_," its voice thunders, "you have chosen this path, knowingly or not\. Power is not given—it is taken through trials that will test your very essence\. ⚖️💀 Those who falter shall carry the scars of failure\. Those who endure will wield the power to defy destiny itself\."
 
-The trials begin now\. There is no retreat, no escape\. Stand firm, for you will face the chaos you sought to command\. 🔮⚡"""
+The trials begin now\. There is no retreat, no escape\. Stand firm, for you will face the chaos you sought to command\. 🔮⚡
+Press /challenge to get your first trial\!"""
 
 
 HELP_MESSAGE = r"""
@@ -34,15 +40,59 @@ LEADERBOARD_MESSAGE = "Here are the top 5 challengers of this trial\! 🏆"
 
 
 async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """
+    Start command handler
+    Args:
+        update (Update): Telegram update object
+        context (ContextTypes.DEFAULT_TYPE): Telegram context object
+    """
+    # create user in the database
+    user = User.create(
+        first_name=update.effective_user.first_name,
+        telegram_id=update.effective_user.id,
+        username=update.effective_user.username,
+    )
     await update.message.reply_text(START_MESSAGE, parse_mode=ParseMode.MARKDOWN_V2)
 
 
 async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """
+    Help command handler
+    Args:
+        update (Update): Telegram update object
+        context (ContextTypes.DEFAULT_TYPE): Telegram context object
+    """
     await update.message.reply_text(HELP_MESSAGE, parse_mode=ParseMode.MARKDOWN_V2)
 
 
 async def challenge_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text(CHALLENGE_MESSAGE, parse_mode=ParseMode.MARKDOWN_V2)
+    """
+    Challenge command handler
+    Args:
+        update (Update): Telegram update object
+        context (ContextTypes.DEFAULT_TYPE): Telegram context object
+    """
+    # Get a random exercise
+    exercise_id, exercise_text, exercise_title = get_random_exercise(
+        update.effective_user.id
+    )
+
+    # Update user's current exercise
+    User.update_exercise(update.effective_user.id, exercise_id)
+
+    # Reformat text
+    reformatted_text = split_text_smart(exercise_text)
+
+    # Render math image and send it to the user
+    with NamedTemporaryFile(suffix=".png", dir=".", delete=False) as image_path:
+        render_math_image(reformatted_text, output_file=image_path.name)
+        await update.message.reply_text(
+            CHALLENGE_MESSAGE, parse_mode=ParseMode.MARKDOWN_V2
+        )
+        await update.message.reply_photo(
+            photo=image_path.name, caption=f"Section: {exercise_title}"
+        )
+        os.remove(image_path.name)
 
 
 async def score_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
