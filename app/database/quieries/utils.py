@@ -3,10 +3,15 @@ from contextlib import contextmanager
 import logging
 from app import config
 from sqlalchemy import create_engine
+import os
 
 logger = logging.getLogger(__name__)
 
 # Create the engine
+print(config.DATABASE_URL)
+print(config.BOOK_FILEPATH)
+print(os.listdir())
+print(os.environ)
 engine = create_engine(config.DATABASE_URL)
 
 # Create a configured "Session" class
