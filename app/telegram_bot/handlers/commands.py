@@ -34,7 +34,7 @@ Here are the things you can ask of me during your challenges:
 CHALLENGE_MESSAGE = "Here comes the trial\!⚡"
 
 SCORE_MESSAGE = Template(
-    "Let me see\.\. Hmm\.\. Through you challenges you have gained $value points of cassuality\! 🌀🔢"
+    "Let me see\.\. Hmm\.\. Through you challenges you have gained *$value points* of cassuality\! 🌀🔢"
 )
 
 LEADERBOARD_MESSAGE = "Here are the top 5 challengers of this trial\! 🏆"
@@ -143,12 +143,11 @@ async def challenge_response(update: Update, context: ContextTypes.DEFAULT_TYPE)
 
 
 async def score_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    value = 100
-    formated_message = SCORE_MESSAGE.substitute(value=value)
+    score = User.user_score(update.effective_user.id)
+    formated_message = SCORE_MESSAGE.substitute(value=score)
     await update.message.reply_text(formated_message, parse_mode=ParseMode.MARKDOWN_V2)
 
 
 async def leaderboard_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text(
-        LEADERBOARD_MESSAGE, parse_mode=ParseMode.MARKDOWN_V2
-    )
+    leaderboard = User.get_top_users()
+    await update.message.reply_text(leaderboard, parse_mode=ParseMode.MARKDOWN_V2)
