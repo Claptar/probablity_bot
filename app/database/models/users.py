@@ -35,7 +35,9 @@ class User(Base):
     last_trial_id = Column(Integer, ForeignKey("exercises.id"), nullable=True)
 
     exercise = relationship("Exercise")
-    solved_exercises = relationship("SolvedExercise", back_populates="user")
+    solved_exercises = relationship(
+        "SolvedExercise", back_populates="user", uselist=True
+    )
 
     @classmethod
     def create(cls: Type["User"], **user_data: Dict[str, str]) -> "User":

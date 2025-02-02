@@ -17,7 +17,8 @@ class Exercise(CommonAttributes):
     solution_id = Column(
         Integer, ForeignKey("solutions.id"), nullable=True, unique=True
     )
-
+    score = Column(Integer, default=1)
+    
     paragraph = relationship("Paragraph", back_populates="exercise", uselist=False)
     solution = relationship("Solution", back_populates="exercise", uselist=False)
     solved_exercises = relationship("SolvedExercise", back_populates="exercise")
