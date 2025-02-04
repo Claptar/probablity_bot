@@ -1,11 +1,10 @@
-from typing import Dict, Type, List
-from app.database.models.base import Base
-from sqlalchemy import Integer, String, Column, ForeignKey, desc
-from sqlalchemy.orm import relationship, joinedload
-from app.database.quieries.utils import session_scope
+"Contains the User class that represents a user, stored in the database"
 import logging
-
-logger = logging.getLogger(__name__)
+from typing import Dict, Type, List, Any
+from sqlalchemy import Integer, String, Column, ForeignKey, desc
+from sqlalchemy.orm import relationship, Session
+from app.database.models.base import Base
+from app.database.quieries.utils import session_scope
 
 
 class User(Base):
@@ -44,7 +43,7 @@ class User(Base):
             User: created user
         """
 
-        logger.info(f"Creating a new user with data: {user_data}")
+        logging.info("Creating a new user with data: %s", user_data)
 
         # check if there is telegram_id in the user_data
         if "telegram_id" not in user_data.keys():
@@ -58,8 +57,8 @@ class User(Base):
                 .one_or_none()
             )
             if user:
-                logger.warning(
-                    f"User {user_data} exists in the database. Updating the user data"
+                logging.warning(
+                    "User %s exists in the database. Updating the user data", user_data
                 )
                 user.first_name = user_data.get("first_name", None)
                 user.username = user_data.get("username", None)
@@ -71,6 +70,54 @@ class User(Base):
         return user
 
     @classmethod
+    def user_by_telegram_id(
+        cls: Type["User"], telegram_id: int, session: Session
+    ) -> "User":
+        """
+        Get the user by telegram id
+        Args:
+            telegram_id (int): Telegram's user id
+            session (Session): SQLAlchemy session
+        Returns:
+            User: User object
+        """
+        user = session.query(cls).filter_by(telegram_id=telegram_id).one_or_none()
+        if user:
+            return user
+        else:
+            raise ValueError(
+                f"User with telegram id {telegram_id} not found in the database"
+            )
+
+    def to_dict(self) -> Dict[str, Any]:
+        """
+        Convert the User object to a dictionary
+        Returns:
+            Dict[str, Any]: Dictionary representation of the User object
+        """
+        return {
+            "id": self.id,
+            "username": self.username,
+            "score": self.score,
+            "telegram_id": self.telegram_id,
+        }
+
+    @classmethod
+    def get_solution(cls, telegram_id: int) -> str:
+        """
+        Get the solution of the last exercise that the user tried
+        Args:
+            telegram_id (int): Telegram's user id
+        Returns:
+            str: Solution text of the last exercise
+        """
+        with session_scope() as session:
+            user = cls.user_by_telegram_id(telegram_id, session)
+            if user.last_trial_id is None:
+                raise ValueError("User has not tried any exercise yet")
+            return user.exercise.contents
+
+    @classmethod
     def update_exercise(cls, telegram_id: int, exercise_id: int) -> None:
         """
         Update the last exercise that the user tried
@@ -79,13 +126,8 @@ class User(Base):
             exercise_id (int): Exercise id
         """
         with session_scope() as session:
-            user = session.query(cls).filter_by(telegram_id=telegram_id).one_or_none()
-            if user:
-                user.last_trial_id = exercise_id
-            else:
-                raise ValueError(
-                    f"User with telegram id {telegram_id} not found in the database"
-                )
+            user = cls.user_by_telegram_id(telegram_id, session)
+            user.last_trial_id = exercise_id
 
     @classmethod
     def user_score(cls, telegram_id: int) -> int:
@@ -97,18 +139,8 @@ class User(Base):
             int: User's score
         """
         with session_scope() as session:
-            user = (
-                session.query(cls)
-                .options(joinedload(cls.solved_exercises))
-                .filter_by(telegram_id=telegram_id)
-                .one_or_none()
-            )
-            if user:
-                return user.score
-            else:
-                raise ValueError(
-                    f"User with telegram id {telegram_id} not found in the database"
-                )
+            user = cls.user_by_telegram_id(telegram_id, session)
+            return user.score
 
     @staticmethod
     def _userlist_to_leaderboard(userlist: List["User"]) -> str:

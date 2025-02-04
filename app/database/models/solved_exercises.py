@@ -1,3 +1,4 @@
+"Contains the SolvedExercise class that represents a solved exercise by a user, stored in the database"
 from sqlalchemy import Column, Integer, ForeignKey
 from sqlalchemy.orm import relationship
 from app.database.models.base import Base

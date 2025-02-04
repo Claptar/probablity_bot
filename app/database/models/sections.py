@@ -1,3 +1,4 @@
+"Contains the Section class that represents a section from the book, stored in the database"
 from typing import Dict, Optional
 from app.database.models.base import Base
 from sqlalchemy import (

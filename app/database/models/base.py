@@ -1,4 +1,4 @@
-from typing import Dict, Optional
+"A module that contains the Base and CommonAttributes classes"
 from sqlalchemy import (
     Integer,
     String,
@@ -6,8 +6,7 @@ from sqlalchemy import (
     UniqueConstraint,
     ForeignKey,
 )
-from sqlalchemy.orm import DeclarativeBase, Session, relationship
-from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import DeclarativeBase
 
 
 class Base(DeclarativeBase):

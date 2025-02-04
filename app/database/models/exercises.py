@@ -1,3 +1,4 @@
+"Contains the Exercise class that represents an exercise from the book, stored in the database"
 from app.database.models.base import CommonAttributes
 from sqlalchemy.orm import relationship
 from sqlalchemy import Column, Integer, ForeignKey
