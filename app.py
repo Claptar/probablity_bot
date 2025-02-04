@@ -1,13 +1,4 @@
-from app.config import BOT_TOKEN
-from app.telegram_bot import (
-    help_command,
-    challenge_command,
-    start_command,
-    score_command,
-    leaderboard_command,
-    handle_message,
-    challenge_response,
-)
+"Contains app's main logic"
 from telegram import Update
 from telegram.ext import (
     Application,
@@ -18,6 +9,17 @@ from telegram.ext import (
     filters,
 )
 from app.utils.logging_config import setup_logging
+from app.config import BOT_TOKEN
+from app.telegram_bot.handlers.commands import (
+    help_command,
+    challenge_command,
+    start_command,
+    score_command,
+    leaderboard_command,
+    solution_command,
+)
+
+from app.telegram_bot.handlers.messages import handle_message, give_rest, solved
 
 
 async def handle_error(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -31,26 +33,53 @@ if __name__ == "__main__":
     application = Application.builder().token(BOT_TOKEN).build()
 
     # Cinversation handler
-    conversation_handler = ConversationHandler(
+    challenge_command_handler = ConversationHandler(
         entry_points=[CommandHandler("challenge", challenge_command)],
         states={
             "TRIAL": [
                 MessageHandler(
-                    filters.Regex("^(Next trial|Solved it!|Give me some rest)$"),
-                    challenge_response,
-                )
+                    filters.Regex("^(Next trial)$"),
+                    challenge_command,
+                ),
+                MessageHandler(
+                    filters.Regex("^(Give me the answer!)$"),
+                    solution_command,
+                ),
+                MessageHandler(
+                    filters.Regex("^(Give me some rest)$"),
+                    give_rest,
+                ),
+            ],
+            "SOLUTION": [
+                MessageHandler(
+                    filters.Regex("^(Next trial)$"),
+                    challenge_command,
+                ),
+                MessageHandler(
+                    filters.Regex("^(Solved it!)$"),
+                    solved,
+                ),
+                MessageHandler(
+                    filters.Regex("^(Give me some rest)$"),
+                    give_rest,
+                ),
             ],
             "SOLVED": [
                 MessageHandler(
-                    filters.Regex("^(Next trial|Give me some rest)$"),
-                    challenge_response,
-                )
+                    filters.Regex("^(Next trial)$"),
+                    challenge_command,
+                ),
+                MessageHandler(
+                    filters.Regex("^(Give me some rest)$"),
+                    give_rest,
+                ),
             ],
         },
         fallbacks=[
             CommandHandler("help", help_command),
             CommandHandler("score", score_command),
             CommandHandler("leaderboard", leaderboard_command),
+            CommandHandler("solution", solution_command),
             MessageHandler(filters.TEXT, handle_message),
         ],
     )
@@ -60,7 +89,8 @@ if __name__ == "__main__":
     application.add_handler(CommandHandler("help", help_command))
     application.add_handler(CommandHandler("score", score_command))
     application.add_handler(CommandHandler("leaderboard", leaderboard_command))
-    application.add_handler(conversation_handler)
+    application.add_handler(CommandHandler("solution", solution_command))
+    application.add_handler(challenge_command_handler)
 
     # Messages
     application.add_handler(MessageHandler(filters.TEXT, handle_message))
