@@ -14,12 +14,12 @@ handlers:
 
   file:
     class: logging.FileHandler
-    level: INFO
+    level: DEBUG
     formatter: standard
     filename: app.log
 
 loggers:
   '':
-    level: INFO
+    level: DEBUG
     handlers: [console, file]
     propagate: true
