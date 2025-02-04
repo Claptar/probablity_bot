@@ -12,5 +12,9 @@ async def leaderboard_command(update: Update, context: ContextTypes.DEFAULT_TYPE
         update (Update): Telegram update object
         context (ContextTypes.DEFAULT_TYPE): Telegram context object
     """
+    # Notify user that you are generating an answer
+    await update.message.reply_chat_action("typing")
+
     leaderboard = User.get_top_users()
+    await update.message.reply_chat_action("typing")
     await update.message.reply_text(leaderboard, parse_mode=ParseMode.MARKDOWN_V2)

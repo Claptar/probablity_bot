@@ -23,6 +23,9 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         update (Update): Telegram update object
         context (ContextTypes.DEFAULT_TYPE): Telegram context object
     """
+    # Notify user that you are generating an answer
+    await update.message.reply_chat_action("typing")
+
     # create user in the database
     user = User.create(
         first_name=update.effective_user.first_name,

@@ -1,8 +1,9 @@
-from app.database.models import Exercise, SolvedExercise, User
-from app.database.quieries.utils import session_scope
-from sqlalchemy.sql.expression import func
-from typing import Tuple
+"A module for database queries"
 import logging
+from typing import Tuple
+from sqlalchemy.sql.expression import func
+from app.database.models import Exercise, User
+from app.database.quieries.utils import session_scope
 
 
 def get_random_exercise(
@@ -19,16 +20,16 @@ def get_random_exercise(
     """
     with session_scope() as session:
         # get user
-        user = session.query(User).filter_by(telegram_id=telegram_id).one_or_none()
+        user = User.user_by_telegram_id(telegram_id, session)
 
         if user is None:
             logging.error(
-                f"User with telegram id {telegram_id} not found in the database"
+                "User with telegram id %s not found in the database", telegram_id
             )
             user = User.create(
-                first_name=update.effective_user.first_name,
-                telegram_id=update.effective_user.id,
-                username=update.effective_user.username,
+                first_name=first_name,
+                telegram_id=telegram_id,
+                username=username,
             )
 
         # Extract the IDs of solved exercises

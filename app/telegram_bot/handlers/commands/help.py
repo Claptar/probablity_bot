@@ -22,4 +22,5 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         update (Update): Telegram update object
         context (ContextTypes.DEFAULT_TYPE): Telegram context object
     """
+    await update.message.reply_chat_action("typing")
     await update.message.reply_text(HELP_MESSAGE, parse_mode=ParseMode.MARKDOWN_V2)
