@@ -15,7 +15,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         context (ContextTypes.DEFAULT_TYPE): The context object providing relevant data and
                                               helper methods for handling the update.
     """
-    response = "Enough of chit-chat... Return to the trial!🌀"
+    response = "Enough of your chit-chat... Return to the trial!🌀"
     await update.message.reply_chat_action("typing")
     await update.message.reply_text(response)
 
