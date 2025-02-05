@@ -115,7 +115,7 @@ class User(Base):
             user = cls.user_by_telegram_id(telegram_id, session)
             if user.last_trial_id is None:
                 raise ValueError("User has not tried any exercise yet")
-            return user.exercise.contents
+            return user.exercise.solution.contents
 
     @classmethod
     def update_exercise(cls, telegram_id: int, exercise_id: int) -> None:
