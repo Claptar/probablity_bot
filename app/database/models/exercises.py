@@ -1,12 +1,12 @@
 "Contains the Exercise class that represents an exercise from the book, stored in the database"
 import logging
 from typing import Dict, Type
+from sqlalchemy.orm import relationship, Session
+from sqlalchemy import Column, Integer, ForeignKey
 from app.database.models.base import CommonAttributes
 from app.database.models.paragraphs import Paragraph
 from app.database.models.solutions import Solution
 from app.database.models.sections import Section
-from sqlalchemy.orm import relationship, Session
-from sqlalchemy import Column, Integer, ForeignKey
 
 
 class Exercise(CommonAttributes):
@@ -36,7 +36,7 @@ class Exercise(CommonAttributes):
         Returns:
             bool: True if the contents are valid, False otherwise
         """
-        keywords = ["Exercise", "Theorem", "Example"]
+        keywords = ["Theorem", "Example"]
         return any(keyword in self.contents for keyword in keywords)
 
     def refactor_contets(self) -> None:
@@ -94,12 +94,14 @@ class Exercise(CommonAttributes):
 
         # check if there are references in the exercise contents
         if exercise.check_references():
-            logging.info("Creating a new exercise with data: %s", exercise_data)
-            session.add(exercise)
-            return exercise
-        else:
+            # TODO add solution removal
             logging.error(
                 "Exercise %s contents are invalid. Skipping the exercise",
                 exercise_data["number"],
             )
             return None
+
+        # add the exercise to the table
+        logging.info("Creating a new exercise with data: %s", exercise_data)
+        session.add(exercise)
+        return exercise

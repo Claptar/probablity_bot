@@ -40,6 +40,27 @@ class Paragraph(Base):
     section = relationship("Section", back_populates="paragraph", uselist=False)
     exercise = relationship("Exercise", back_populates="paragraph")
     solution = relationship("Solution", back_populates="paragraph")
+    selected_paragraphs = relationship("SelectedParagraphs", back_populates="paragraph")
+
+    @classmethod
+    def paragraph_by_number(
+        cls: Type["Section"], number: str, session: Session
+    ) -> "Section":
+        """
+        Get the user by telegram id
+        Args:
+            number (str): Paragraph number
+            session (Session): SQLAlchemy session
+        Returns:
+            User: User object
+        """
+        section = session.query(cls).filter_by(number=number).one_or_none()
+        if section:
+            return section
+        else:
+            raise ValueError(
+                f"Paragraph with number {number} not found in the database"
+            )
 
     @classmethod
     def create(

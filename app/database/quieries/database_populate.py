@@ -1,17 +1,11 @@
+" Module to populate the database with sections, paragraphs, solutions and exercises. "
+from typing import Iterator, Tuple
+from sqlalchemy.orm import Session
 from app import config
-from re import Match
-from typing import Type, Iterator, Tuple
-from app.database.models import Base, Exercise, Solution, Section, Paragraph
+from app.parsers import parse_sections, get_paragraphs, parse_exercises, get_exercises
+from app.database.models import Exercise, Solution, Section, Paragraph
 from app.database.quieries.utils import session_scope
 from app.database.quieries.database_init import initialize_database
-from sqlalchemy.orm import Session
-from sqlalchemy.orm.exc import NoResultFound
-from app.parsers import (
-    parse_sections,
-    get_paragraphs,
-    parse_exercises,
-    get_exercises,
-)
 
 
 def populate_sections(text: str, session: Session) -> None:

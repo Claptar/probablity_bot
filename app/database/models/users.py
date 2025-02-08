@@ -1,7 +1,7 @@
 "Contains the User class that represents a user, stored in the database"
 import logging
 from typing import Dict, Type, List, Any
-from sqlalchemy import Integer, String, Column, ForeignKey, desc
+from sqlalchemy import Integer, String, Column, ForeignKey, Boolean, desc
 from sqlalchemy.orm import relationship, Session
 from app.database.models.base import Base
 from app.database.quieries.utils import session_scope
@@ -27,10 +27,18 @@ class User(Base):
     username = Column(String, nullable=True)
     score = Column(Integer, default=0)
     last_trial_id = Column(Integer, ForeignKey("exercises.id"), nullable=True)
+    select_sections = Column(Boolean, default=False)
+    select_paragraphs = Column(Boolean, default=False)
 
     exercise = relationship("Exercise")
     solved_exercises = relationship(
         "SolvedExercise", back_populates="user", uselist=True
+    )
+    selected_sections = relationship(
+        "SelectedSections", back_populates="user", uselist=True
+    )
+    selected_paragraphs = relationship(
+        "SelectedParagraphs", back_populates="user", uselist=True
     )
 
     @classmethod

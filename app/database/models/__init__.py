@@ -5,3 +5,5 @@ from app.database.models.paragraphs import Paragraph
 from app.database.models.sections import Section
 from app.database.models.users import User
 from app.database.models.solved_exercises import SolvedExercise
+from app.database.models.selected_sections import SelectedSections
+from app.database.models.selected_paragraphs import SelectedParagraphs
