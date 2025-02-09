@@ -1,24 +1,10 @@
 " Module to populate the database with sections, paragraphs, solutions and exercises. "
-from typing import Iterator, Tuple
-from sqlalchemy.orm import Session
 from app import config
 from app.parsers import parse_sections, get_paragraphs, parse_exercises, get_exercises
-from app.database.models import Exercise, Solution, Section, Paragraph
+from app.database.models import Solution, Section
 from app.database.quieries.utils import session_scope
 from app.database.quieries.database_init import initialize_database
-from app.database.quieries.table_populate import add_paragraph
-
-
-def populate_sections(text: str, session: Session) -> None:
-    """
-    Parse sections from a solution mannual and save them to the database.
-    Args:
-        text (str): solution mannual's text in markdown format
-        session (Session): database session
-    """
-    for section_match in parse_sections(text):
-        section = Section(**section_match.groupdict())
-        session.add(section)
+from app.database.quieries.table_populate import add_paragraph, add_exercise
 
 
 def populate_solutions_and_paragraphs(text: str) -> None:
@@ -43,19 +29,6 @@ def populate_solutions_and_paragraphs(text: str) -> None:
             session.commit()
 
 
-def populate_exercises(text: str) -> None:
-    """
-    Parse exercises from a book and save them to the database
-    Args:
-        text (str): text in markdown format
-    """
-    for section_number, paragraph_number, exercise_data in get_exercises(text):
-        with session_scope() as session:
-            exercise = Exercise.create(
-                session, section_number, paragraph_number, exercise_data
-            )
-
-
 def process_solution_mannual(filepath: str) -> None:
     """
     Parse sollution mannually from a file and save exercises, paragrapgs
@@ -69,7 +42,10 @@ def process_solution_mannual(filepath: str) -> None:
 
     # Populate sections
     with session_scope() as session:
-        populate_sections(text, session)
+        for section_match in parse_sections(text):
+            section = Section(**section_match.groupdict())
+            session.add(section)
+        session.commit()
 
     # Populate paragraphs and solutions
     populate_solutions_and_paragraphs(text)
@@ -86,11 +62,20 @@ def process_book(filepath: str) -> None:
     with open(filepath, "r") as file:
         text = file.read()
 
-    # Populate paragraphs and exercises
-    populate_exercises(text)
+    # Populate exercises
+    for section_number, paragraph_number, exercise_data in get_exercises(text):
+        with session_scope() as session:
+            add_exercise(section_number, paragraph_number, exercise_data, session)
+            session.commit()
 
 
 def populate_database(bookpath: str, solutionpath: str) -> None:
+    """
+    Populate the database with sections, paragraphs, solutions and exercises.
+    Args:
+        bookpath (str): a path to the book in markdown format
+        solutionpath (str): a path to the solution mannual in markdown format
+    """
     # Process solution mannual to populate sections, paragraphs and solutions tables
     process_solution_mannual(solutionpath)
 
