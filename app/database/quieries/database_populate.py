@@ -6,6 +6,7 @@ from app.parsers import parse_sections, get_paragraphs, parse_exercises, get_exe
 from app.database.models import Exercise, Solution, Section, Paragraph
 from app.database.quieries.utils import session_scope
 from app.database.quieries.database_init import initialize_database
+from app.database.quieries.table_populate import add_paragraph
 
 
 def populate_sections(text: str, session: Session) -> None:
@@ -20,33 +21,26 @@ def populate_sections(text: str, session: Session) -> None:
         session.add(section)
 
 
-def populate_paragraphs(text: str) -> Iterator[Tuple[Paragraph, str, Session]]:
-    """
-    Parse paragraphs from a solution mannual and save them to the database
-    Args:
-        text (str): solution mannual's text in markdown format
-
-    Yields:
-        Iterator[Tuple[Paragraph, str, Session]]: exercise section and session
-    """
-    for section_number, solution_section, paragraph_data in get_paragraphs(text):
-        with session_scope() as session:
-            paragraph = Paragraph.create(
-                session, section_number=section_number, paragraph_data=paragraph_data
-            )
-            yield paragraph, solution_section, session
-
-
 def populate_solutions_and_paragraphs(text: str) -> None:
     """
     Parse solutions and paragraphs from a solution mannual and save them to the database.
     Args:
         text (str): solution mannual's text in markdown format
     """
-    for paragraph, solution_section, session in populate_paragraphs(text):
-        for solution_match in parse_exercises(solution_section):
-            solution = Solution(paragraph_id=paragraph.id, **solution_match.groupdict())
-            session.add(solution)
+    for section_number, solution_section, paragraph_data in get_paragraphs(text):
+        with session_scope() as session:
+            # add paragraph to the table
+            paragraph = add_paragraph(section_number, paragraph_data, session)
+
+            # add solutions from paragraph to the table
+            for solution_match in parse_exercises(solution_section):
+                solution = Solution(
+                    paragraph_id=paragraph.id, **solution_match.groupdict()
+                )
+                session.add(solution)
+
+            # commit the session
+            session.commit()
 
 
 def populate_exercises(text: str) -> None:
