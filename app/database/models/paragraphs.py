@@ -43,45 +43,25 @@ class Paragraph(Base):
     selected_paragraphs = relationship("SelectedParagraphs", back_populates="paragraph")
 
     @classmethod
-    def paragraph_by_number(
-        cls: Type["Section"], number: str, session: Session
+    def paragraph_by_section_and_number(
+        cls: Type["Section"], number: str, section_id: int, session: Session
     ) -> "Section":
         """
         Get the user by telegram id
         Args:
             number (str): Paragraph number
+            section_id (int): Section id
             session (Session): SQLAlchemy session
         Returns:
             User: User object
         """
-        section = session.query(cls).filter_by(number=number).one_or_none()
-        if section:
-            return section
-        else:
-            raise ValueError(
+        paragraph = (
+            session.query(cls)
+            .filter_by(section_id=section_id, number=number)
+            .one_or_none()
+        )
+        if not paragraph:
+            raise NoResultFound(
                 f"Paragraph with number {number} not found in the database"
             )
-
-    @classmethod
-    def create(
-        cls: Type["Paragraph"],
-        session: Session,
-        section_number: int,
-        paragraph_data: Dict[str, str],
-    ) -> None:
-        """
-        Create a paragraph in the database
-        Args:
-            session (Session): database session
-            section_number (int): section number
-            paragraph_data (Dict[str, str]): paragraph data
-        Returns:
-            Paragraph: paragraph object
-        """
-        section = session.query(Section).filter_by(number=section_number).one_or_none()
-        if not section:
-            raise NoResultFound(f"Section {section_number} not found in the database")
-        paragraph = cls(section_id=section.id, **paragraph_data)
-        session.add(paragraph)
-        session.commit()
         return paragraph
