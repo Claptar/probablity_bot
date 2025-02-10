@@ -41,6 +41,12 @@ class User(Base):
         "SelectedParagraph", back_populates="user", uselist=True
     )
 
+    def __repr__(self) -> str:
+        return f"User(telegram_id={self.telegram_id}, first_name={self.first_name}, username={self.username})"
+
+    def __str__(self) -> str:
+        return f"User {self.username} with telegram id {self.telegram_id}"
+
     @classmethod
     def create(cls: Type["User"], **user_data: Dict[str, str]) -> "User":
         """
