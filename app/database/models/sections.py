@@ -1,6 +1,5 @@
 "Contains the Section class that represents a section from the book, stored in the database"
 from typing import Type
-from string import Template
 from sqlalchemy import Integer, String, Column
 from sqlalchemy.orm import Session, relationship
 from sqlalchemy.exc import NoResultFound
