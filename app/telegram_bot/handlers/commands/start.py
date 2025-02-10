@@ -2,7 +2,7 @@
 from telegram import Update
 from telegram.ext import ContextTypes
 from telegram.constants import ParseMode
-from app.database.models import User
+from app.database.quieries.table_populate import add_user
 
 
 START_MESSAGE = r"""
@@ -27,7 +27,7 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_chat_action("typing")
 
     # create user in the database
-    user = User.create(
+    add_user(
         first_name=update.effective_user.first_name,
         telegram_id=update.effective_user.id,
         username=update.effective_user.username,

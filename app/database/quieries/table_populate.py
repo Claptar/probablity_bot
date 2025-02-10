@@ -12,6 +12,44 @@ from app.database.models import (
 from app.database.quieries.utils import session_scope
 
 
+def add_user(first_name: str, telegram_id: str, username: str) -> User:
+    """
+    Create a new user in the database.
+    Args:
+        first_name (str): first name
+        telegram_id (str): telegram id
+        username (str): username
+
+    Raises:
+        ValueError: if telegram id is not provided
+
+    Returns:
+        User:
+    """
+    logging.info("Creating a new user")
+
+    # check if there is telegram_id in the user_data
+    if telegram_id is None:
+        raise ValueError("Telegram id is required to create a user")
+
+    with session_scope() as session:
+        # check if the user already exists in the database
+        user = User.user_by_telegram_id(telegram_id, session)
+        if user:
+            logging.warning(
+                "User %s exists in the database. Updating the user data", user
+            )
+            user.first_name = first_name
+            user.username = username
+            logging.info("Updated user data: %s", user)
+        else:
+            user = User(
+                first_name=first_name, telegram_id=telegram_id, username=username
+            )
+            session.add(user)
+        session.commit()
+
+
 def add_paragraph(
     section_number: str, paragraph_data: str, session: Session
 ) -> Paragraph:
