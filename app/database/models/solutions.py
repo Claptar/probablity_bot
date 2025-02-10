@@ -1,9 +1,7 @@
 "Contains the Solution class that represents an exercise from the book, stored in the database"
 import logging
-from app.database.models.base import CommonAttributes
 from sqlalchemy.orm import relationship
-from sqlalchemy.exc import NoResultFound
-from sqlalchemy import Column, Integer, ForeignKey
+from app.database.models.base import CommonAttributes
 
 
 class Solution(CommonAttributes):
@@ -38,5 +36,5 @@ class Solution(CommonAttributes):
             .one_or_none()
         )
         if not solution:
-            logging.warn("Solution with number %s not found in the database", number)
+            logging.warning("Solution with number %s not found in the database", number)
         return solution

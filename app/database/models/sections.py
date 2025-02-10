@@ -5,7 +5,6 @@ from sqlalchemy import Integer, String, Column
 from sqlalchemy.orm import Session, relationship
 from sqlalchemy.exc import NoResultFound
 from app.database.models.base import Base
-from app.database.quieries import cache_region
 
 
 class Section(Base):
@@ -25,7 +24,7 @@ class Section(Base):
     title = Column(String, nullable=False)
 
     paragraph = relationship("Paragraph", back_populates="section")
-    selected_sections = relationship("SelectedSections", back_populates="section")
+    selected_sections = relationship("SelectedSection", back_populates="section")
     tables = relationship("Table", back_populates="section", uselist=True)
 
     def __repr__(self) -> str:

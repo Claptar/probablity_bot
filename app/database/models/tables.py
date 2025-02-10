@@ -1,5 +1,5 @@
 "Contains the Table class that represents a table from the book, stored in the database"
-from sqlalchemy import Integer, String, Column
+from sqlalchemy import Integer, String, Column, ForeignKey
 from sqlalchemy.orm import relationship
 from app.database.models.base import Base
 
@@ -19,9 +19,9 @@ class Table(Base):
     id = Column(Integer, primary_key=True)
     number = Column(Integer, nullable=False)
     contents = Column(String, nullable=False)
-    section_id = Column(Integer, nullable=False)
+    section_id = Column(Integer, ForeignKey("sections.id"), nullable=False)
 
-    section = relationship("Section", back_populates="table")
+    section = relationship("Section", back_populates="tables")
     exercises = relationship("Exercise", back_populates="table", uselist=True)
 
     def __repr__(self) -> str:

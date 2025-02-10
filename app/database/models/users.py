@@ -35,10 +35,10 @@ class User(Base):
         "SolvedExercise", back_populates="user", uselist=True
     )
     selected_sections = relationship(
-        "SelectedSections", back_populates="user", uselist=True
+        "SelectedSection", back_populates="user", uselist=True
     )
     selected_paragraphs = relationship(
-        "SelectedParagraphs", back_populates="user", uselist=True
+        "SelectedParagraph", back_populates="user", uselist=True
     )
 
     @classmethod

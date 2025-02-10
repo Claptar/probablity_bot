@@ -1,6 +1,5 @@
 "Contains the Paragraph class that represents a section from the book, stored in the database"
-from typing import Dict, Type
-from app.database.models.base import Base
+from typing import Type
 from sqlalchemy import (
     Integer,
     String,
@@ -9,8 +8,8 @@ from sqlalchemy import (
     UniqueConstraint,
 )
 from sqlalchemy.orm import Session, relationship
-from sqlalchemy.exc import IntegrityError, NoResultFound
-from app.database.models.sections import Section
+from sqlalchemy.orm.exc import NoResultFound
+from app.database.models.base import Base
 
 
 class Paragraph(Base):
@@ -40,12 +39,12 @@ class Paragraph(Base):
     section = relationship("Section", back_populates="paragraph", uselist=False)
     exercise = relationship("Exercise", back_populates="paragraph")
     solution = relationship("Solution", back_populates="paragraph")
-    selected_paragraphs = relationship("SelectedParagraphs", back_populates="paragraph")
+    selected_paragraphs = relationship("SelectedParagraph", back_populates="paragraph")
 
     @classmethod
     def paragraph_by_section_and_number(
-        cls: Type["Section"], number: str, section_id: int, session: Session
-    ) -> "Section":
+        cls: Type["Paragraph"], number: str, section_id: int, session: Session
+    ) -> "Paragraph":
         """
         Get the user by telegram id
         Args:

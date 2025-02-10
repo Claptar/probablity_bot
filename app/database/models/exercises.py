@@ -1,12 +1,7 @@
 "Contains the Exercise class that represents an exercise from the book, stored in the database"
-import logging
-from typing import Dict, Type
-from sqlalchemy.orm import relationship, Session
+from sqlalchemy.orm import relationship
 from sqlalchemy import Column, Integer, ForeignKey
 from app.database.models.base import CommonAttributes
-from app.database.models.paragraphs import Paragraph
-from app.database.models.solutions import Solution
-from app.database.models.sections import Section
 
 
 class Exercise(CommonAttributes):
@@ -19,12 +14,13 @@ class Exercise(CommonAttributes):
     solution_id = Column(
         Integer, ForeignKey("solutions.id"), nullable=False, unique=True
     )
+    table_id = Column(Integer, ForeignKey("tables.id"), nullable=True, unique=True)
     score = Column(Integer, default=1)
 
     paragraph = relationship("Paragraph", back_populates="exercise", uselist=False)
     solution = relationship("Solution", back_populates="exercise", uselist=False)
     solved_exercises = relationship("SolvedExercise", back_populates="exercise")
-    table = relationship("Table", back_populates="exercise", uselist=False)
+    table = relationship("Table", back_populates="exercises", uselist=False)
 
     def __repr__(self) -> str:
         return f"Exercise(number={self.number}, paragraph={self.paragraph}"
