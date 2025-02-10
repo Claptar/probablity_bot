@@ -3,7 +3,7 @@ import logging
 from telegram import Update, ReplyKeyboardMarkup, ReplyKeyboardRemove
 from telegram.ext import ContextTypes, ConversationHandler
 from telegram.constants import ParseMode
-from app.database.models import SolvedExercise
+from app.database.quieries.table_populate import add_solved_exercise
 
 
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -31,7 +31,7 @@ async def solved(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """
     # Add the solved exercise to the database
     logging.info("User %s solved the exercise", update.effective_user.id)
-    SolvedExercise.add_user_solution(update.effective_user.id)
+    add_solved_exercise(update.effective_user.id)
 
     # Send the response to the user
     reply_keyboard = [["Next trial", "Give me some rest"]]

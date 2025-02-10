@@ -1,7 +1,15 @@
 " Queries to populate database tables "
 import logging
 from sqlalchemy.orm import Session
-from app.database.models import Exercise, Solution, Section, Paragraph
+from app.database.models import (
+    Exercise,
+    Solution,
+    Section,
+    Paragraph,
+    User,
+    SolvedExercise,
+)
+from app.database.quieries.utils import session_scope
 
 
 def add_paragraph(
@@ -67,3 +75,26 @@ def add_exercise(
     # add the exercise to the table
     logging.info("Creating a new exercise with data: %s", exercise_data)
     session.add(exercise)
+
+
+def add_solved_exercise(user_id: int):
+    """
+    Add a solved exercise to the database.
+    Args:
+        user_id (int): user id
+    """
+    with session_scope() as session:
+        # get user by telegram id
+        user = User.user_by_telegram_id(user_id, session)
+
+        # create solved exercise object
+        solved_exercise = SolvedExercise(
+            user_id=user.id, exercise_id=user.last_trial_id
+        )
+        session.add(solved_exercise)
+
+        logging.info("%s solved the exercise %s", user, user.last_trial_id)
+
+        # set the last trial to None
+        user.last_trial_id = None
+        session.commit()
