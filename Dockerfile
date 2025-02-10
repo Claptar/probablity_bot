@@ -2,13 +2,6 @@
 FROM python:3.11-slim
 
 
-# Set the working directory in the container
-WORKDIR /app
-
-# Copy the current directory contents into the container at /app
-COPY . /app
-
-
 # Install the minimal LaTeX distribution and poppler-utils
 #   texlive-latex-base: Minimal TeX Live for basic latex -> PDF
 #   poppler-utils: for pdftoppm (PDF -> image conversions)
@@ -19,6 +12,13 @@ RUN apt-get update && \
     && rm -rf /var/lib/apt/lists/*
 
 
+# Set the working directory in the container
+WORKDIR /app
+
+# Copy the current directory contents into the container at /app
+COPY . /app
+
+
 # Install dependencies using pip from the setup.py and requirements.txt
 RUN pip install --upgrade pip \
     && pip install setuptools \
@@ -26,8 +26,8 @@ RUN pip install --upgrade pip \
 
 
 # Set ENTRYPOINT to our script
-RUN chmod +x /app/docker/entrypoint.sh
-ENTRYPOINT ["/app/docker/entrypoint.sh"]
+RUN chmod +x ./docker/entrypoint.sh
+ENTRYPOINT ["./docker/entrypoint.sh"]
 
 # Run the application when the container starts
 CMD ["python", "app.py"]
