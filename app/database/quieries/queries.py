@@ -2,6 +2,7 @@
 import logging
 from typing import Tuple
 from sqlalchemy.sql.expression import func
+from sqlalchemy.exc import NoResultFound
 from app.database.models import Exercise, User
 from app.database.quieries.utils import session_scope
 
@@ -24,12 +25,10 @@ def get_random_exercise(
 
         if user is None:
             logging.error(
-                "User with telegram id %s not found in the database", telegram_id
+                "User with telegram_id=%s not found in the database", telegram_id
             )
-            user = User.create(
-                first_name=first_name,
-                telegram_id=telegram_id,
-                username=username,
+            raise NoResultFound(
+                f"User with telegram_id={telegram_id} not found in the database"
             )
 
         # Extract the IDs of solved exercises
@@ -51,3 +50,16 @@ def get_random_exercise(
             raise ValueError(error_message)
 
         return exercise.id, exercise.contents, exercise.paragraph.title
+
+
+def update_users_exercise(telegram_id: int, exercise_id: int) -> None:
+    """
+    Update the last exercise that the user tried
+    Args:
+        telegram_id (int): Telegram's user id
+        exercise_id (int): Exercise id
+    """
+    with session_scope() as session:
+        user = User.user_by_telegram_id(telegram_id, session)
+        user.last_trial_id = exercise_id
+        session.commit()

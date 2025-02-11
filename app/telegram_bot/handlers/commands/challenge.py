@@ -2,11 +2,10 @@
 import os
 import logging
 import tempfile
-from telegram import Update, ReplyKeyboardMarkup, ReplyKeyboardRemove
-from telegram.ext import ContextTypes, ConversationHandler
+from telegram import Update, ReplyKeyboardMarkup
+from telegram.ext import ContextTypes
 from telegram.constants import ParseMode
-from app.database.models import User, SolvedExercise
-from app.database.quieries.queries import get_random_exercise
+from app.database.quieries.queries import get_random_exercise, update_users_exercise
 from app.utils import latex_to_png
 
 
@@ -31,7 +30,7 @@ async def challenge_command(update: Update, context: ContextTypes.DEFAULT_TYPE) 
     )
 
     # Update user's current exercise
-    User.update_exercise(update.effective_user.id, exercise_id)
+    update_users_exercise(update.effective_user.id, exercise_id)
 
     # Render exercise image
     logging.info("Rendering LaTeX to PNG for exercise: %s", exercise_text)
