@@ -1,5 +1,4 @@
 " This module contains the conversation handler for the challenge command. "
-from telegram import Update
 from telegram.ext import (
     ConversationHandler,
     CommandHandler,
