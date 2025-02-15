@@ -1,5 +1,5 @@
 "Contains the Paragraph class that represents a section from the book, stored in the database"
-from typing import Type
+from typing import Type, Dict, List, Any
 from sqlalchemy import (
     Integer,
     String,
@@ -41,6 +41,23 @@ class Paragraph(Base):
     solution = relationship("Solution", back_populates="paragraph")
     selected_paragraphs = relationship("SelectedParagraph", back_populates="paragraph")
 
+    def __repr__(self) -> str:
+        return f"Paragraph(number={self.number}, title={self.title})"
+
+    def to_dict(self) -> Dict[str, Any]:
+        """
+        Convert the paragraph to a dictionary
+        Returns:
+            Dict[str, Any]: Paragraph dictionary
+        """
+        return {
+            "id": self.id,
+            "section_id": self.section_id,
+            "number": self.number,
+            "title": self.title,
+            "contents": self.contents,
+        }
+
     @classmethod
     def paragraph_by_section_and_number(
         cls: Type["Paragraph"], number: str, section_id: int, session: Session
@@ -52,7 +69,7 @@ class Paragraph(Base):
             section_id (int): Section id
             session (Session): SQLAlchemy session
         Returns:
-            User: User object
+            Paragraph: Paragraph object
         """
         paragraph = (
             session.query(cls)
@@ -64,3 +81,18 @@ class Paragraph(Base):
                 f"Paragraph with number {number} not found in the database"
             )
         return paragraph
+
+    @classmethod
+    def get_section_paragraphs(
+        cls, section_id: str, session: Session
+    ) -> List[Dict[str, Any]]:
+        """
+        Get all paragraphs for the section
+        Args:
+            section_id (int): Section id
+            session (Session): SQLAlchemy session
+        Returns:
+            List[Dict[str, Any]]: Dictionary with paragraphs
+        """
+        paragraphs = session.query(cls).filter_by(section_id=section_id).all()
+        return {paragraph.id: paragraph.title for paragraph in paragraphs}
