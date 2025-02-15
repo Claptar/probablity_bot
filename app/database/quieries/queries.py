@@ -1,9 +1,16 @@
 "A module for database queries"
 import logging
-from typing import Tuple
+from typing import Tuple, List, Dict, Any
 from sqlalchemy.sql.expression import func
 from sqlalchemy.exc import NoResultFound
-from app.database.models import Exercise, User, Section
+from app.database.models import (
+    Exercise,
+    User,
+    Section,
+    SelectedSection,
+    Paragraph,
+    SelectedParagraph,
+)
 from app.database.quieries.utils import session_scope
 
 
@@ -39,7 +46,7 @@ def get_random_exercise(
         if exercise is None:
             error_message = "No unsolved exercises found for the user"
             logging.error(error_message)
-            raise ValueError(error_message)
+            raise NoResultFound(error_message)
 
         return exercise.id, exercise.contents, exercise.paragraph.title
 
@@ -93,15 +100,69 @@ def user_exercise_soluiton(telegram_id: str) -> str:
     with session_scope() as session:
         user = User.user_by_telegram_id(telegram_id, session)
         if user.last_trial_id is None:
-            raise ValueError("User has not tried any exercise yet")
+            raise NoResultFound("User has not tried any exercise yet")
         return user.exercise.solution.contents
 
 
-def get_sections() -> str:
+def get_sections() -> Dict[int, str]:
     """
     Get the list of sections
     Returns:
-        str: List of sections
+        Dict[int, str]: Dict with section id and title
     """
     with session_scope() as session:
         return Section.get_all_sections(session)
+
+
+def get_selected_sections(telegram_id: str) -> List[int]:
+    """
+    Get the selected sections by user id
+    Args:
+        telegram_id (str): Telegram's user id
+    Returns:
+        List[int]: List of selected sections' ids
+    """
+    with session_scope() as session:
+        user = User.user_by_telegram_id(telegram_id, session)
+        selected_sections = SelectedSection.get_selected_sections(user.id, session)
+        return (
+            [section.section_id for section in selected_sections]
+            if selected_sections
+            else []
+        )
+
+
+def get_section_paragraphs(section_id: str) -> List[Dict[str, Any]]:
+    """
+    Get the list of paragraphs
+    Args:
+        section_id (str): Section id
+    Returns:
+        List[Dict[str, Any]]: List of paragraphs
+    """
+    with session_scope() as session:
+        return Paragraph.get_section_paragraphs(section_id, session)
+
+
+def get_selected_section_paragraphs(telegram_id: str, section_id: str) -> List[int]:
+    """
+    Get the selected paragraphs by user id and section id
+    Args:
+        telegram_id (str): Telegram's user id
+        section_id (str): Section id
+    Returns:
+        List[int]: List of selected paragraphs' ids
+    """
+    with session_scope() as session:
+        user = User.user_by_telegram_id(telegram_id, session)
+
+        # get user's selected paragraphs, fro each paragraph get section_id and filter only paragraphs from specified section
+        selected_paragraphs = (
+            session.query(Paragraph)
+            .join(SelectedParagraph, SelectedParagraph.paragraph_id == Paragraph.id)
+            .filter(
+                SelectedParagraph.user_id == user.id, Paragraph.section_id == section_id
+            )
+            .all()
+        )
+        return [paragraph.id for paragraph in selected_paragraphs]
