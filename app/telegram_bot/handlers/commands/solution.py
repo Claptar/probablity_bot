@@ -5,7 +5,7 @@ import tempfile
 from telegram import Update, ReplyKeyboardMarkup
 from telegram.ext import ContextTypes
 from telegram.constants import ParseMode
-from app.database.models import User
+from app.database.quieries.queries import user_exercise_soluiton
 from app.utils import latex_to_png
 
 
@@ -23,7 +23,7 @@ async def solution_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_chat_action("typing")
 
     # Get the solution of the last exercise that the user tried
-    solution_text = User.get_solution(update.effective_user.id)
+    solution_text = user_exercise_soluiton(update.effective_user.id)
 
     # Render exercise image
     logging.info("Rendering LaTeX to PNG for solution: %s", solution_text)

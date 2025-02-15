@@ -1,10 +1,11 @@
 "Contains the User class that represents a user, stored in the database"
 import logging
+from string import Template
 from typing import Dict, Type, List, Any
-from sqlalchemy import Integer, String, Column, ForeignKey, Boolean, desc
+from sqlalchemy import Integer, String, Column, ForeignKey, Boolean, desc, func
 from sqlalchemy.orm import relationship, Session
+from sqlalchemy.exc import NoResultFound
 from app.database.models.base import Base
-from app.database.quieries.utils import session_scope
 
 
 class User(Base):
@@ -48,44 +49,8 @@ class User(Base):
         return f"User {self.username} with telegram id {self.telegram_id}"
 
     @classmethod
-    def create(cls: Type["User"], **user_data: Dict[str, str]) -> "User":
-        """
-        Create a new user in the database
-        Args:
-            user_data (Dict[str, str]): user data
-        Returns:
-            User: created user
-        """
-
-        logging.info("Creating a new user with data: %s", user_data)
-
-        # check if there is telegram_id in the user_data
-        if "telegram_id" not in user_data.keys():
-            raise ValueError("Telegram id is required to create a user")
-
-        with session_scope() as session:
-            # check if the user already exists in the database
-            user = (
-                session.query(cls)
-                .filter_by(telegram_id=user_data["telegram_id"])
-                .one_or_none()
-            )
-            if user:
-                logging.warning(
-                    "User %s exists in the database. Updating the user data", user_data
-                )
-                user.first_name = user_data.get("first_name", None)
-                user.username = user_data.get("username", None)
-            else:
-                user = cls(**user_data)
-
-            # add the user to the table
-            session.add(user)
-        return user
-
-    @classmethod
     def user_by_telegram_id(
-        cls: Type["User"], telegram_id: int, session: Session
+        cls: Type["User"], telegram_id: str, session: Session
     ) -> "User":
         """
         Get the user by telegram id
@@ -96,12 +61,14 @@ class User(Base):
             User: User object
         """
         user = session.query(cls).filter_by(telegram_id=telegram_id).one_or_none()
-        if user:
-            return user
-        else:
-            raise ValueError(
+        if not user:
+            logging.error(
+                "User with telegram_id=%s not found in the database", telegram_id
+            )
+            raise NoResultFound(
                 f"User with telegram id {telegram_id} not found in the database"
             )
+        return user
 
     def to_dict(self) -> Dict[str, Any]:
         """
@@ -112,77 +79,128 @@ class User(Base):
         return {
             "id": self.id,
             "username": self.username,
+            "first_name": self.first_name,
             "score": self.score,
             "telegram_id": self.telegram_id,
         }
 
-    @classmethod
-    def get_solution(cls, telegram_id: int) -> str:
+    @staticmethod
+    def get_rank_emoji(rank: int) -> str:
         """
-        Get the solution of the last exercise that the user tried
+        Get the emoji for the user's rank
         Args:
-            telegram_id (int): Telegram's user id
+            rank (int): User's rank
         Returns:
-            str: Solution text of the last exercise
+            str: Emoji for the user's rank
         """
-        with session_scope() as session:
-            user = cls.user_by_telegram_id(telegram_id, session)
-            if user.last_trial_id is None:
-                raise ValueError("User has not tried any exercise yet")
-            return user.exercise.solution.contents
-
-    @classmethod
-    def update_exercise(cls, telegram_id: int, exercise_id: int) -> None:
-        """
-        Update the last exercise that the user tried
-        Args:
-            telegram_id (int): Telegram's user id
-            exercise_id (int): Exercise id
-        """
-        with session_scope() as session:
-            user = cls.user_by_telegram_id(telegram_id, session)
-            user.last_trial_id = exercise_id
-
-    @classmethod
-    def user_score(cls, telegram_id: int) -> int:
-        """
-        Get the user's score
-        Args:
-            telegram_id (int): Telegram's user id
-        Returns:
-            int: User's score
-        """
-        with session_scope() as session:
-            user = cls.user_by_telegram_id(telegram_id, session)
-            return user.score
+        top3_emojis = ["🥇", "🥈", "🥉"]
+        outer_emoji = "🔹"
+        if rank <= 3:
+            return top3_emojis[rank - 1]
+        return outer_emoji
 
     @staticmethod
-    def _userlist_to_leaderboard(userlist: List["User"]) -> str:
+    def get_user_name(user: Dict[str, Any]) -> str:
+        """
+        Get the user's name
+        Args:
+            user (Dict[str, Any]): User dictionary
+        Returns:
+            str: User's name
+        """
+        if user["username"]:
+            return "@" + user["username"]
+        elif user["first_name"]:
+            return user["first_name"]
+        elif user["telegram_id"]:
+            return "Challenger" + user["telegram_id"]
+        return "Unknown challenger"
+
+    @classmethod
+    def user_to_leaderboard(cls, user: Dict[str, Any]) -> str:
+        """
+        Convert a user to a leaderboard string
+        Args:
+            user (Dict[str, Any]): User dictionary
+        Returns:
+            str: Leaderboard string
+        """
+        leaderboard_template = Template(
+            "$rank_emoji $user_name: *$score point${plural_s}*"
+        )
+        return leaderboard_template.substitute(
+            rank_emoji=cls.get_rank_emoji(user["rank"]),
+            user_name=cls.get_user_name(user),
+            score=user["score"],
+            plural_s="s" if user["score"] > 1 else "",
+        )
+
+    @classmethod
+    def _userlist_to_leaderboard(
+        cls, userlist: List["User"], user: Dict[str, Any] = None
+    ) -> str:
         """
         Convert a list of users to a leaderboard string
         Args:
             userlist (List[User]): List of users
+            user (Dict[str, Any], optional): User dictionary
         Returns:
             str: Leaderboard string
         """
-        emoji_list = ["🥇", "🥈", "🥉"] + ["🔹"] * 7
-        leaderboard = [
-            f"{emoji_list[i]} @{user.username}: *{user.score}{'s' if user.score > 1 else ''} points*"
-            for i, user in enumerate(userlist)
-        ]
+        # create the leaderboard
+        leaderboard = [cls.user_to_leaderboard(user) for user in userlist]
         header = "💥*Strongest challengers*💥\n\n"
         leaderboard = header + "\n".join(leaderboard)
+        if user in userlist:
+            leaderboard += "\n....\n" + cls.user_to_leaderboard(user)
         return leaderboard
 
     @classmethod
-    def get_top_users(cls, limit: int = 7):
+    def get_user_ranking(cls, session: Session) -> List[Dict[str, Any]]:
         """
-        Get the top users with the highest scores
+        Get the user ranking
         Args:
-            limit (int): Number of top users to retrieve
+            session (Session): SQLAlchemy session
         Returns:
-            List[User]: List of top users
+            List[Dict[str, Any]]: List of users with ranks
         """
-        with session_scope() as session:
-            top_users = session.query(cls).order_by(desc(cls.score)).limit(limit).all()
-            return cls._userlist_to_leaderboard(top_users)
+        ranked_query = session.query(
+            cls,
+            func.rank().over(order_by=desc(cls.score)).label("rank"),
+        ).all()
+        if not ranked_query:
+            return NoResultFound("No users found in the database")
+        return [{"rank": rank, **user.to_dict()} for user, rank in ranked_query]
+
+    @staticmethod
+    def user_ranking(telegram_id: int, user_list: List["User"]) -> str:
+        """
+        Get the user ranking
+        Args:
+            telegram_id (int): Telegram's user id
+            user_list (List[User]): List of users
+        Returns:
+            str: User's rank
+        """
+        for user in user_list:
+            if user["telegram_id"] == telegram_id:
+                return user.rank
+        return NoResultFound(
+            "User with telegram_id=%s not found in the ranking", telegram_id
+        )
+
+    @classmethod
+    def user_leaderboard(
+        cls, telegram_id: str, session: Session, limit: int = 5
+    ) -> str:
+        """
+        Get the user leaderboard
+        Args:
+            telegram_id (str): Telegram's user id
+            session (Session): SQLAlchemy session
+        Returns:
+            str: Leaderboard string
+        """
+        user_list = cls.get_user_ranking(session)
+        user_rank = cls.user_ranking(telegram_id, user_list)
+        return cls._userlist_to_leaderboard(user_list[:limit], user_rank)

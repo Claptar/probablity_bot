@@ -34,7 +34,7 @@ def add_user(first_name: str, telegram_id: str, username: str) -> User:
 
     with session_scope() as session:
         # check if the user already exists in the database
-        user = User.user_by_telegram_id(telegram_id, session)
+        user = session.query(User).filter_by(telegram_id=telegram_id).one_or_none()
         if user:
             logging.warning(
                 "User %s exists in the database. Updating the user data", user
@@ -133,6 +133,7 @@ def add_solved_exercise(user_id: int):
 
         logging.info("%s solved the exercise %s", user, user.last_trial_id)
 
-        # set the last trial to None
+        # set the last trial to None and add casuality point
+        user.score += user.exercise.score
         user.last_trial_id = None
         session.commit()
