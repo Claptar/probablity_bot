@@ -8,6 +8,8 @@ from app.database.models import (
     Paragraph,
     User,
     SolvedExercise,
+    SelectedParagraph,
+    SelectedSection,
 )
 from app.database.quieries.utils import session_scope
 
@@ -115,7 +117,7 @@ def add_exercise(
     session.add(exercise)
 
 
-def add_solved_exercise(user_id: int):
+def add_solved_exercise(telegram_id: str):
     """
     Add a solved exercise to the database.
     Args:
@@ -123,7 +125,7 @@ def add_solved_exercise(user_id: int):
     """
     with session_scope() as session:
         # get user by telegram id
-        user = User.user_by_telegram_id(user_id, session)
+        user = User.user_by_telegram_id(telegram_id, session)
 
         # create solved exercise object
         solved_exercise = SolvedExercise(
@@ -136,4 +138,84 @@ def add_solved_exercise(user_id: int):
         # set the last trial to None and add casuality point
         user.score += user.exercise.score
         user.last_trial_id = None
+        session.commit()
+
+
+def add_selected_section(telegram_id: str, section_id: int):
+    """
+    Add a selected section to the database.
+    Args:
+        telegram_id (str): telegram id
+        section_id (int): section id
+    """
+    with session_scope() as session:
+        # get user by telegram id
+        user = User.user_by_telegram_id(telegram_id, session)
+
+        # check if the section is already selected
+        selected_section = SelectedSection.get_selected_section(
+            user.id, section_id, session
+        )
+
+        # if the section is already selected remove it
+        if selected_section:
+            session.delete(selected_section)
+            logging.info("Removed section %s from user %s", section_id, user)
+        else:
+            # create selected section object
+            selected_section = SelectedSection(user_id=user.id, section_id=section_id)
+            session.add(selected_section)
+            logging.info("Added section %s to user %s", section_id, user)
+        session.commit()
+
+        # get the selected sections for the user
+        selected_sections = SelectedSection.get_selected_sections(user.id, session)
+        logging.info("There is %s sections for user %s", len(selected_sections), user)
+
+        # change user's state to select sections
+        user.select_sections = len(selected_sections) > 0
+        session.commit()
+
+
+def add_selected_paragraph(telegram_id: str, paragraph_id: int):
+    """
+    Add a selected paragraph to the database.
+    Args:
+        telegram_id (str): telegram id
+        paragraph_id (int): paragraph id
+    """
+    with session_scope() as session:
+        # get user by telegram id
+        user = User.user_by_telegram_id(telegram_id, session)
+
+        # check if the paragraph is already selected
+        selected_paragraph = (
+            session.query(SelectedParagraph)
+            .filter_by(user_id=user.id, paragraph_id=paragraph_id)
+            .one_or_none()
+        )
+
+        # if the paragraph is already selected remove it
+        if selected_paragraph:
+            session.delete(selected_paragraph)
+            logging.info("Removed paragraph %s from user %s", paragraph_id, user)
+        else:
+            # create selected paragraph object
+            selected_paragraph = SelectedParagraph(
+                user_id=user.id, paragraph_id=paragraph_id
+            )
+            session.add(selected_paragraph)
+            logging.info("Added paragraph %s to user %s", paragraph_id, user)
+        session.commit()
+
+        # get the selected paragraphs for the user
+        selected_paragraphs = (
+            session.query(SelectedParagraph).filter_by(user_id=user.id).all()
+        )
+        logging.info(
+            "There is %s paragraphs for user %s", len(selected_paragraphs), user
+        )
+
+        # change user's state to select paragraphs
+        user.select_paragraphs = len(selected_paragraphs) > 0
         session.commit()
