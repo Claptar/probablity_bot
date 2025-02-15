@@ -1,6 +1,7 @@
 "Contains the SelectedParagraph class that represents a paragraphs selected by user in the database"
+from typing import Dict, List, Any
 from sqlalchemy import Column, Integer, ForeignKey
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import relationship, Session
 from app.database.models.base import Base
 
 
@@ -20,3 +21,18 @@ class SelectedParagraph(Base):
 
     def __repr__(self) -> str:
         return f"SelectedParagraph(user_id={self.user_id}, paragraph_id_id={self.paragraph_id})"
+
+    def __str__(self) -> str:
+        return f"Selected paragraph {self.paragraph_id} selected by user {self.user_id}"
+
+    def to_dict(self) -> Dict[str, Any]:
+        """
+        Convert the object to a dictionary
+        Returns:
+            Dict[str, Any]: Dictionary representation of the object
+        """
+        return {
+            "id": self.id,
+            "user_id": self.user_id,
+            "paragraph_id": self.paragraph_id,
+        }
