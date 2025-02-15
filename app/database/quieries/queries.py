@@ -3,7 +3,7 @@ import logging
 from typing import Tuple
 from sqlalchemy.sql.expression import func
 from sqlalchemy.exc import NoResultFound
-from app.database.models import Exercise, User
+from app.database.models import Exercise, User, Section
 from app.database.quieries.utils import session_scope
 
 
@@ -95,3 +95,13 @@ def user_exercise_soluiton(telegram_id: str) -> str:
         if user.last_trial_id is None:
             raise ValueError("User has not tried any exercise yet")
         return user.exercise.solution.contents
+
+
+def get_sections() -> str:
+    """
+    Get the list of sections
+    Returns:
+        str: List of sections
+    """
+    with session_scope() as session:
+        return Section.get_all_sections(session)

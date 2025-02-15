@@ -1,5 +1,5 @@
 "Contains the Section class that represents a section from the book, stored in the database"
-from typing import Type
+from typing import Type, Dict, Any, List
 from sqlalchemy import Integer, String, Column
 from sqlalchemy.orm import Session, relationship
 from sqlalchemy.exc import NoResultFound
@@ -48,14 +48,26 @@ class Section(Base):
             )
         return section
 
+    def to_dict(self) -> Dict[str, Any]:
+        """
+        Convert the section to a dictionary
+        Returns:
+            Dict[str, Any]: Section dictionary
+        """
+        return {
+            "id": self.id,
+            "number": self.number,
+            "title": self.title,
+        }
+
     @classmethod
-    def get_all_sections(cls: Type["Section"], session: Session) -> str:
+    def get_all_sections(cls: Type["Section"], session: Session) -> Dict[int, str]:
         """
         Get all sections
         Args:
             session (Session): SQLAlchemy session
         Returns:
-            List[Section]: List of Section objects
+            Dict[int, str]: Dictionary with section id and title
         """
         # Get all sections
         sections = session.query(cls).all()
@@ -64,6 +76,6 @@ class Section(Base):
         if not sections:
             raise ValueError("No sections found in the database")
 
-        # Create a message with all sections
-        # section_list = [f"{section.title}:\t" for section in sections]
-        return sections
+        # Create a list with all sections
+        sections_dict = {section.id: section.title for section in sections}
+        return sections_dict
