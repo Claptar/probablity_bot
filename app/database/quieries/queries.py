@@ -10,6 +10,7 @@ from app.database.models import (
     Section,
     Paragraph,
     SelectedParagraph,
+    SolvedExercise,
 )
 from app.database.quieries.utils import session_scope
 from app.database.quieries.cache import cache_region
@@ -237,3 +238,60 @@ def get_selected_section_paragraphs(
             }
             for paragraph_id, paragraph in paragraphs.items()
         }
+
+
+@cache_region.cache_on_arguments()
+def count_all_exercises() -> Dict[int, Dict[str, Any]]:
+    """
+    Count the number of all exercises in each section
+    Returns:
+        Dict[int, Dict[str, Any]]: section data with the number of exercises
+    """
+    with session_scope() as session:
+        # get all sections
+        sections = get_sections()
+
+        # count all exercises for each section
+        total_exercises = dict(
+            session.query(Section.id, func.count(Exercise.id))
+            .join(Paragraph, Paragraph.section_id == Section.id)
+            .join(Exercise, Exercise.paragraph_id == Paragraph.id)
+            .group_by(Section.id)
+            .all()
+        )
+        return {
+            section_id: {"total": total_exercises[section_id], **section}
+            for section_id, section in sections.items()
+        }
+
+
+def count_solved_exercises(telegram_id: str) -> List[Dict[str, int]]:
+    """
+    Count the number of solved exercises by user id for each section
+    Args:
+        telegram_id (str): Telegram's user id
+    Returns:
+        List[Dict[str, int]]: Number of solved exercises for each section
+    """
+    with session_scope() as session:
+        # get user by telegram id
+        user = User.user_by_telegram_id(telegram_id, session)
+
+        # get a number of all exercises for each section
+        exercise_numbers = count_all_exercises()
+
+        # count solved exercises
+        solved_count = dict(
+            session.query(Section.id, func.count(Exercise.id))
+            .join(Paragraph, Paragraph.section_id == Section.id)
+            .join(Exercise, Exercise.paragraph_id == Paragraph.id)
+            .join(SolvedExercise, SolvedExercise.exercise_id == Exercise.id)
+            .filter(SolvedExercise.user_id == user.id)
+            .group_by(Section.id)
+            .all()
+        )
+
+        return [
+            {"solved": solved_count.get(section_id, 0), **section}
+            for section_id, section in exercise_numbers.items()
+        ]
