@@ -26,6 +26,7 @@ class User(Base):
     telegram_id = Column(String, nullable=False)
     first_name = Column(String, nullable=True)
     username = Column(String, nullable=True)
+    score = Column(Integer, default=0)
     last_trial_id = Column(Integer, ForeignKey("exercises.id"), nullable=True)
     select_paragraphs = Column(Boolean, default=False)
 

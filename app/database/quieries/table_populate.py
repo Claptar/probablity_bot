@@ -11,6 +11,7 @@ from app.database.models import (
     SelectedParagraph,
 )
 from app.database.quieries.utils import session_scope
+from app.database.quieries.queries import update_user_score
 
 
 def add_user(first_name: str, telegram_id: str, username: str) -> User:
@@ -177,5 +178,6 @@ def add_selected_paragraph(telegram_id: str, paragraph_id: int):
         )
 
         # change user's state to select paragraphs
+        update_user_score(user, session)
         user.select_paragraphs = len(selected_paragraphs) > 0
         session.commit()
