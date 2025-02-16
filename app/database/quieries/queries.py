@@ -36,13 +36,30 @@ def get_random_exercise(
             solved_exercise.exercise_id for solved_exercise in user.solved_exercises
         ]
 
-        # get a random exercise that user hasn't solved yet
-        exercise = (
-            session.query(Exercise)
-            .filter(~Exercise.id.in_(solved_exercise_ids))
-            .order_by(func.random())
-            .first()
+        # Get the paragraph IDs the user has selected
+        selected_paragraph_ids = (
+            session.query(SelectedParagraph.paragraph_id)
+            .filter(SelectedParagraph.user_id == user.id)
+            .subquery()
         )
+
+        # get a random exercise that user hasn't solved yet
+        if user.select_paragraphs:
+            exercise = (
+                session.query(Exercise)
+                .join(Paragraph, Exercise.paragraph_id == Paragraph.id)
+                .filter(Paragraph.id.in_(selected_paragraph_ids))
+                .filter(~Exercise.id.in_(solved_exercise_ids))
+                .order_by(func.random())
+                .first()
+            )
+        else:
+            exercise = (
+                session.query(Exercise)
+                .filter(~Exercise.id.in_(solved_exercise_ids))
+                .order_by(func.random())
+                .first()
+            )
 
         if exercise is None:
             error_message = "No unsolved exercises found for the user"
@@ -105,7 +122,7 @@ def user_exercise_soluiton(telegram_id: str) -> str:
         return user.exercise.solution.contents
 
 
-# @cache_region.cache_on_arguments()
+@cache_region.cache_on_arguments()
 def get_sections() -> Dict[int, Dict[str, Any]]:
     """
     Get the list of sections

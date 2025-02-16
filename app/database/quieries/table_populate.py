@@ -9,7 +9,6 @@ from app.database.models import (
     User,
     SolvedExercise,
     SelectedParagraph,
-    SelectedSection,
 )
 from app.database.quieries.utils import session_scope
 
