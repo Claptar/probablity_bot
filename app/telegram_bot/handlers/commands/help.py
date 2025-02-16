@@ -10,6 +10,7 @@ Here are the things you can ask of me during your challenges:
 /help — I will show you the way to the light\. 🕯️
 /challenge — I will present you with a trial of probability\. 🎲
 /solution — I will reveal the secrets of the universe\. 📖
+/solution — Choose trials that fit your skills\. 🎯
 /score — I will show you the path you have walked\. 📈
 /leaderboard — I will show you the path others have walked\. 🏆
 """
