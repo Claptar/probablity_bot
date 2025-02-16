@@ -13,18 +13,11 @@ from app.telegram_bot.handlers.commands import (
     select_command,
 )
 from app.telegram_bot.handlers.messages import handle_message
-from app.telegram_bot.handlers.callbacks import (
-    section_callback,
-    paragraph_callback,
-    select_callback,
-)
+from app.telegram_bot.handlers.callbacks import section_callback, paragraph_callback
 
 select_conversation_handler = ConversationHandler(
     entry_points=[CommandHandler("select", select_command)],
     states={
-        "SELECT": [
-            CallbackQueryHandler(select_callback),
-        ],
         "SECTION": [CallbackQueryHandler(section_callback)],
         "PARAGRAPH": [CallbackQueryHandler(paragraph_callback)],
     },
