@@ -141,42 +141,6 @@ def add_solved_exercise(telegram_id: str):
         session.commit()
 
 
-def add_selected_section(telegram_id: str, section_id: int):
-    """
-    Add a selected section to the database.
-    Args:
-        telegram_id (str): telegram id
-        section_id (int): section id
-    """
-    with session_scope() as session:
-        # get user by telegram id
-        user = User.user_by_telegram_id(telegram_id, session)
-
-        # check if the section is already selected
-        selected_section = SelectedSection.get_selected_section(
-            user.id, section_id, session
-        )
-
-        # if the section is already selected remove it
-        if selected_section:
-            session.delete(selected_section)
-            logging.info("Removed section %s from user %s", section_id, user)
-        else:
-            # create selected section object
-            selected_section = SelectedSection(user_id=user.id, section_id=section_id)
-            session.add(selected_section)
-            logging.info("Added section %s to user %s", section_id, user)
-        session.commit()
-
-        # get the selected sections for the user
-        selected_sections = SelectedSection.get_selected_sections(user.id, session)
-        logging.info("There is %s sections for user %s", len(selected_sections), user)
-
-        # change user's state to select sections
-        user.select_sections = len(selected_sections) > 0
-        session.commit()
-
-
 def add_selected_paragraph(telegram_id: str, paragraph_id: int):
     """
     Add a selected paragraph to the database.
@@ -209,9 +173,7 @@ def add_selected_paragraph(telegram_id: str, paragraph_id: int):
         session.commit()
 
         # get the selected paragraphs for the user
-        selected_paragraphs = (
-            session.query(SelectedParagraph).filter_by(user_id=user.id).all()
-        )
+        selected_paragraphs = user.selected_paragraphs
         logging.info(
             "There is %s paragraphs for user %s", len(selected_paragraphs), user
         )
