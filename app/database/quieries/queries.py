@@ -95,6 +95,22 @@ def get_user_leaderboard(telegram_id: str) -> str:
         return User.user_leaderboard(telegram_id, session)
 
 
+def update_user_score(user: User, session: Session) -> None:
+    """
+    Update the user's score
+    Args:
+        user (User): User object
+    """
+    total_score = (
+        session.query(func.sum(Exercise.score))
+        .join(SolvedExercise, SolvedExercise.exercise_id == Exercise.id)
+        .filter(SolvedExercise.user_id == user.id)
+        .scalar()
+    )
+    user.score = total_score or 0
+    session.commit()
+
+
 def get_user_score(telegram_id: str) -> int:
     """
     Get the user's score
@@ -105,14 +121,8 @@ def get_user_score(telegram_id: str) -> int:
     """
     with session_scope() as session:
         user = User.user_by_telegram_id(telegram_id, session)
-        total_score = (
-            session.query(func.sum(Exercise.score))
-            .join(SolvedExercise, SolvedExercise.exercise_id == Exercise.id)
-            .filter(SolvedExercise.user_id == user.id)
-            .scalar()
-        )
-
-        return total_score or 0
+        update_user_score(user, session)
+        return user.score
 
 
 def user_exercise_soluiton(telegram_id: str) -> str:
