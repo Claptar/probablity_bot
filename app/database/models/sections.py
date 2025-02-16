@@ -1,5 +1,5 @@
 "Contains the Section class that represents a section from the book, stored in the database"
-from typing import Type, Dict, Any, List
+from typing import Type, Dict, Any
 from sqlalchemy import Integer, String, Column
 from sqlalchemy.orm import Session, relationship
 from sqlalchemy.exc import NoResultFound
@@ -23,7 +23,6 @@ class Section(Base):
     title = Column(String, nullable=False)
 
     paragraph = relationship("Paragraph", back_populates="section")
-    selected_sections = relationship("SelectedSection", back_populates="section")
     tables = relationship("Table", back_populates="section", uselist=True)
 
     def __repr__(self) -> str:

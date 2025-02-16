@@ -28,15 +28,11 @@ class User(Base):
     username = Column(String, nullable=True)
     score = Column(Integer, default=0)
     last_trial_id = Column(Integer, ForeignKey("exercises.id"), nullable=True)
-    select_sections = Column(Boolean, default=False)
     select_paragraphs = Column(Boolean, default=False)
 
     exercise = relationship("Exercise")
     solved_exercises = relationship(
         "SolvedExercise", back_populates="user", uselist=True
-    )
-    selected_sections = relationship(
-        "SelectedSection", back_populates="user", uselist=True
     )
     selected_paragraphs = relationship(
         "SelectedParagraph", back_populates="user", uselist=True
