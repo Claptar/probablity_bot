@@ -85,14 +85,14 @@ class Paragraph(Base):
     @classmethod
     def get_section_paragraphs(
         cls, section_id: str, session: Session
-    ) -> List[Dict[str, Any]]:
+    ) -> Dict[int, Dict[str, Any]]:
         """
         Get all paragraphs for the section
         Args:
             section_id (int): Section id
             session (Session): SQLAlchemy session
         Returns:
-            List[Dict[str, Any]]: Dictionary with paragraphs
+            Dict[int, Dict[str, Any]]: Dictionary with paragraphs
         """
         paragraphs = session.query(cls).filter_by(section_id=section_id).all()
-        return {paragraph.id: paragraph.title for paragraph in paragraphs}
+        return {paragraph.id: paragraph.to_dict() for paragraph in paragraphs}

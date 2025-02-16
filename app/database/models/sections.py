@@ -58,16 +58,19 @@ class Section(Base):
             "id": self.id,
             "number": self.number,
             "title": self.title,
+            "paragraph_count": len(self.paragraph),
         }
 
     @classmethod
-    def get_all_sections(cls: Type["Section"], session: Session) -> Dict[int, str]:
+    def get_all_sections(
+        cls: Type["Section"], session: Session
+    ) -> Dict[int, Dict[str, Any]]:
         """
         Get all sections
         Args:
             session (Session): SQLAlchemy session
         Returns:
-            Dict[int, str]: Dictionary with section id and title
+            Dict[int, Dict[str, Any]]: Dictionary with section id and section dictionary
         """
         # Get all sections
         sections = session.query(cls).all()
@@ -77,5 +80,5 @@ class Section(Base):
             raise ValueError("No sections found in the database")
 
         # Create a list with all sections
-        sections_dict = {section.id: section.title for section in sections}
+        sections_dict = {section.id: section.to_dict() for section in sections}
         return sections_dict
