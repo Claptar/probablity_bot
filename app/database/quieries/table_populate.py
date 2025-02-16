@@ -134,8 +134,7 @@ def add_solved_exercise(telegram_id: str):
 
         logging.info("%s solved the exercise %s", user, user.last_trial_id)
 
-        # set the last trial to None and add casuality point
-        user.score += user.exercise.score
+        # set the last trial to None
         user.last_trial_id = None
         session.commit()
 
