@@ -5,6 +5,7 @@ from telegram.ext import ContextTypes, ConversationHandler
 from telegram.constants import ParseMode
 from app.database.quieries.table_populate import add_solved_exercise
 
+
 async def solved(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """
     Handles the solved command by logging the event, updating the database with the user's solution, and sending appropriate responses to the user.

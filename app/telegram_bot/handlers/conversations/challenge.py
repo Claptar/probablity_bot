@@ -8,6 +8,7 @@ from telegram.ext import (
 from app.telegram_bot.handlers.commands import (
     help_command,
     challenge_command,
+    next_trial,
     score_command,
     leaderboard_command,
     solution_command,
@@ -20,7 +21,7 @@ challenge_conversation_handler = ConversationHandler(
         "TRIAL": [
             MessageHandler(
                 filters.Regex("^(Next trial)$"),
-                challenge_command,
+                next_trial,
             ),
             MessageHandler(
                 filters.Regex("^(Give me the answer!)$"),
@@ -34,7 +35,7 @@ challenge_conversation_handler = ConversationHandler(
         "SOLUTION": [
             MessageHandler(
                 filters.Regex("^(Next trial)$"),
-                challenge_command,
+                next_trial,
             ),
             MessageHandler(
                 filters.Regex("^(Solved it!)$"),
@@ -48,7 +49,7 @@ challenge_conversation_handler = ConversationHandler(
         "SOLVED": [
             MessageHandler(
                 filters.Regex("^(Next trial)$"),
-                challenge_command,
+                next_trial,
             ),
             MessageHandler(
                 filters.Regex("^(Give me some rest)$"),
