@@ -11,6 +11,7 @@ Here are the things you can ask of me during your challenges:
 /challenge — I will present you with a trial of probability\. 🎲
 /solution — I will reveal the secrets of the universe\. 📖
 /solution — Choose trials that fit your skills\. 🎯
+/remove — I will take back the last trial you have overcome\. 🔄
 /score — I will show you the path you have walked\. 📈
 /leaderboard — I will show you the path others have walked\. 🏆
 """
