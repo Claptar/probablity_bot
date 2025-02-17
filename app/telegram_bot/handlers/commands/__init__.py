@@ -5,3 +5,4 @@ from app.telegram_bot.handlers.commands.score import score_command
 from app.telegram_bot.handlers.commands.start import start_command
 from app.telegram_bot.handlers.commands.solution import solution_command
 from app.telegram_bot.handlers.commands.select import select_command
+from app.telegram_bot.handlers.commands.remove import remove_command

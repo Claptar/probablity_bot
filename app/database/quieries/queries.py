@@ -95,6 +95,31 @@ def get_current_exercise(telegram_id: str) -> Tuple[int, str, str, str] | None:
         )
 
 
+def remove_last_solved_exercise(telegram_id: str) -> None:
+    """
+    Remove the last solved exercise
+    Args:
+        telegram_id (str): Telegram's user id
+    """
+    with session_scope() as session:
+        user = User.user_by_telegram_id(telegram_id, session)
+        solved_exercise = (
+            session.query(SolvedExercise)
+            .filter(SolvedExercise.user_id == user.id)
+            .order_by(SolvedExercise.id.desc())
+            .first()
+        )
+        if solved_exercise is None:
+            error_message = "No solved exercises found for the user"
+            logging.warning(error_message)
+            raise NoResultFound(error_message)
+        solved_exercise_id = solved_exercise.exercise_id
+        logging.info("Removing the last solved %s for user %s", solved_exercise, user)
+        session.delete(solved_exercise)
+        session.commit()
+    return solved_exercise_id
+
+
 def update_users_exercise(telegram_id: str, exercise_id: int) -> None:
     """
     Update the last exercise that the user tried
@@ -150,19 +175,19 @@ def get_user_score(telegram_id: str) -> int:
         return user.score
 
 
-def user_exercise_soluiton(telegram_id: str) -> str:
+def user_exercise_soluiton(telegram_id: str) -> Tuple[str, int]:
     """
     Get the solution of the last exercise that the user tried
     Args:
         telegram_id (str): Telegram's user id
     Returns:
-        str: Solution text of the last exercise
+        Tuple[str, int]: Solution text, exercise id
     """
     with session_scope() as session:
         user = User.user_by_telegram_id(telegram_id, session)
         if user.last_trial_id is None:
             raise NoResultFound("User has not tried any exercise yet")
-        return user.exercise.solution.contents
+        return user.exercise.solution.contents, user.exercise.id
 
 
 @cache_region.cache_on_arguments()
