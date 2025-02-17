@@ -20,7 +20,7 @@ async def solved(update: Update, context: ContextTypes.DEFAULT_TYPE):
     add_solved_exercise(update.effective_user.id)
 
     # Send the response to the user
-    reply_keyboard = [["Next trial", "Give me some rest"]]
+    reply_keyboard = [["Next trial", "Give me some rest", "Remove last"]]
 
     await update.message.reply_chat_action("typing")
     await update.message.reply_text("Not half bad! You receive 1 casuality point🎲")

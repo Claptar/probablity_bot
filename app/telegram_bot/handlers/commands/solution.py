@@ -13,7 +13,9 @@ from app.utils import latex_to_png
 SOLUTION_MESSAGE = "You want to grasp the mystery of the universe? Fine\.\. 🌌"
 
 
-async def solution_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def solution_command(
+    update: Update, context: ContextTypes.DEFAULT_TYPE
+) -> str | None:
     """
     Help command handler
     Args:
@@ -30,17 +32,28 @@ async def solution_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     except NoResultFound as e:
         logging.error("Error while getting the solution of the last exercise: %s", e)
         message = (
-            "To grasp the mystery you have to go through trial. Take the /challenge"
+            "To grasp the mystery you have to go through a trial. Take the /challenge"
         )
         await update.message.reply_text(message)
-        return "TRIAL"
     except Exception as e:
         logging.error(
             "Error while getting the solution exercise %s: %s", exercise_id, e
         )
+        reply_keyboard = [["Next trial", "Give me some rest"]]
         message = f"I'm unable to grasp the solution for #trial{exercise_id} at the moment. Try again later."
-        await update.message.reply_text(message)
-        return "TRIAL"
+        await update.message.reply_text(
+            message,
+            reply_markup=(
+                ReplyKeyboardMarkup(
+                    reply_keyboard,
+                    input_field_placeholder="State your answer",
+                    resize_keyboard=True,
+                )
+                if not update.message.entities
+                else None
+            ),
+        )
+        return "SOLVED"
 
 
 async def send_solution(update, solution_text, exercise_id) -> str:
@@ -66,15 +79,19 @@ async def send_solution(update, solution_text, exercise_id) -> str:
     await update.message.reply_text(
         SOLUTION_MESSAGE,
         parse_mode=ParseMode.MARKDOWN_V2,
-        reply_markup=ReplyKeyboardMarkup(
-            reply_keyboard,
-            input_field_placeholder="What is your answer?",
-            resize_keyboard=True,
+        reply_markup=(
+            ReplyKeyboardMarkup(
+                reply_keyboard,
+                input_field_placeholder="What is your answer?",
+                resize_keyboard=True,
+            )
+            if not update.message.entities
+            else None
         ),
     )
     await update.message.reply_chat_action("upload_photo")
     await update.message.reply_photo(
-        photo=image_path, caption=f"f#solution#trial{exercise_id}"
+        photo=image_path, caption=f"#solution #trial{exercise_id}"
     )
 
     # Remove the image
