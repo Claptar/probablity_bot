@@ -29,8 +29,10 @@ async def challenge_command(update: Update, context: ContextTypes.DEFAULT_TYPE) 
     exercise_info = get_current_exercise(update.effective_user.id)
 
     if exercise_info:
-        exercise_id, exercise_text, paragraph_title = exercise_info
-        await send_exercise(update, exercise_id, exercise_text, paragraph_title)
+        exercise_id, exercise_text, paragraph_title, section_title = exercise_info
+        await send_exercise(
+            update, exercise_id, exercise_text, paragraph_title, section_title
+        )
         return "TRIAL"
     return await next_trial(update, context)
 
@@ -44,16 +46,20 @@ async def next_trial(update: Update, context: ContextTypes.DEFAULT_TYPE) -> str:
     Returns:
         str: The state identifier ("TRIAL") used to guide the conversation flow
     """
-    exercise_id, exercise_text, paragraph_title = get_random_exercise(
+    exercise_id, exercise_text, paragraph_title, section_title = get_random_exercise(
         first_name=update.effective_user.first_name,
         telegram_id=update.effective_user.id,
         username=update.effective_user.username,
     )
-    await send_exercise(update, exercise_id, exercise_text, paragraph_title)
+    await send_exercise(
+        update, exercise_id, exercise_text, paragraph_title, section_title
+    )
     return "TRIAL"
 
 
-async def send_exercise(update, exercise_id, exercise_text, paragraph_title) -> None:
+async def send_exercise(
+    update, exercise_id, exercise_text, paragraph_title, section_title
+) -> None:
     """
     Send the exercise to the user
     Args:
@@ -87,7 +93,9 @@ async def send_exercise(update, exercise_id, exercise_text, paragraph_title) -> 
     )
     await update.message.reply_chat_action("upload_photo")
     await update.message.reply_photo(
-        photo=image_path, caption=f"Section: {paragraph_title}"
+        photo=image_path,
+        caption=f"\#trial{exercise_id}\n🔴 *{section_title}*\n🟡 _{paragraph_title}_",
+        parse_mode=ParseMode.MARKDOWN_V2,
     )
 
     # Remove the image

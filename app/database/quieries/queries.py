@@ -18,7 +18,7 @@ from app.database.quieries.cache import cache_region
 
 def get_random_exercise(
     first_name: str, telegram_id: str, username: str
-) -> Tuple[int, str]:
+) -> Tuple[int, str, str, str]:
     """
     Retrieve a random exercise from the database.
     Args:
@@ -26,7 +26,7 @@ def get_random_exercise(
         telegram_id (int): user's telegram_id
         username (str): user's username
     Returns:
-        Tuple[int, str]: exercise id and contents
+        Tuple[int, str, str, str]: Exercise id, contents, paragraph title, section title
     """
     with session_scope() as session:
         # get user
@@ -67,22 +67,32 @@ def get_random_exercise(
             logging.error(error_message)
             raise NoResultFound(error_message)
 
-        return exercise.id, exercise.contents, exercise.paragraph.title
+        return (
+            exercise.id,
+            exercise.contents,
+            exercise.paragraph.title,
+            exercise.paragraph.section.title,
+        )
 
 
-def get_current_exercise(telegram_id: str) -> Tuple[int, str] | None:
+def get_current_exercise(telegram_id: str) -> Tuple[int, str, str, str] | None:
     """
     Get the last exercise that the user tried
     Args:
         telegram_id (str): Telegram's user id
     Returns:
-        Tuple[int, str] | None: Exercise id and contents
+        Tuple[int, str, str, str] | None: Exercise id, contents, paragraph title, section title
     """
     with session_scope() as session:
         user = User.user_by_telegram_id(telegram_id, session)
         if user.last_trial_id is None:
             return None
-        return user.last_trial_id, user.exercise.contents, user.exercise.paragraph.title
+        return (
+            user.last_trial_id,
+            user.exercise.contents,
+            user.exercise.paragraph.title,
+            user.exercise.paragraph.section.title,
+        )
 
 
 def update_users_exercise(telegram_id: str, exercise_id: int) -> None:
