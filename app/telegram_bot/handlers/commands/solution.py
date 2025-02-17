@@ -3,7 +3,7 @@ import os
 import logging
 import tempfile
 from telegram import Update, ReplyKeyboardMarkup
-from telegram.ext import ContextTypes
+from telegram.ext import ContextTypes, ConversationHandler
 from telegram.constants import ParseMode
 from sqlalchemy.exc import NoResultFound
 from app.database.quieries.queries import user_exercise_soluiton
@@ -35,6 +35,7 @@ async def solution_command(
             "To grasp the mystery you have to go through a trial. Take the /challenge"
         )
         await update.message.reply_text(message)
+        return ConversationHandler.END
     except Exception as e:
         logging.error(
             "Error while getting the solution exercise %s: %s", exercise_id, e
@@ -53,7 +54,7 @@ async def solution_command(
                 else None
             ),
         )
-        return "SOLVED"
+        return "SOLVED" if not update.message.entities else ConversationHandler.END
 
 
 async def send_solution(update, solution_text, exercise_id) -> str:
@@ -85,8 +86,6 @@ async def send_solution(update, solution_text, exercise_id) -> str:
                 input_field_placeholder="What is your answer?",
                 resize_keyboard=True,
             )
-            if not update.message.entities
-            else None
         ),
     )
     await update.message.reply_chat_action("upload_photo")
