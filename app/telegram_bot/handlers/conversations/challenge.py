@@ -17,7 +17,10 @@ from app.telegram_bot.handlers.commands import (
 from app.telegram_bot.handlers.messages import handle_message, give_rest, solved
 
 challenge_conversation_handler = ConversationHandler(
-    entry_points=[CommandHandler("challenge", challenge_command)],
+    entry_points=[
+        CommandHandler("challenge", challenge_command),
+        CommandHandler("solution", solution_command),
+    ],
     states={
         "TRIAL": [
             MessageHandler(

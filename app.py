@@ -46,7 +46,6 @@ if __name__ == "__main__":
     application.add_handler(CommandHandler("help", help_command))
     application.add_handler(CommandHandler("score", score_command))
     application.add_handler(CommandHandler("leaderboard", leaderboard_command))
-    application.add_handler(CommandHandler("solution", solution_command))
     application.add_handler(CommandHandler("remove", remove_command))
 
     # Conversation handlers
