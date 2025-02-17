@@ -12,6 +12,7 @@ from app.telegram_bot.handlers.commands import (
     score_command,
     leaderboard_command,
     solution_command,
+    remove_command,
 )
 from app.telegram_bot.handlers.messages import handle_message, give_rest, solved
 
@@ -54,6 +55,10 @@ challenge_conversation_handler = ConversationHandler(
             MessageHandler(
                 filters.Regex("^(Give me some rest)$"),
                 give_rest,
+            ),
+            MessageHandler(
+                filters.Regex("^(Remove last)$"),
+                remove_command,
             ),
         ],
     },

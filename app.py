@@ -15,6 +15,7 @@ from app.telegram_bot.handlers.commands import (
     score_command,
     leaderboard_command,
     solution_command,
+    remove_command,
 )
 
 from app.telegram_bot.handlers.messages import handle_message
@@ -46,6 +47,7 @@ if __name__ == "__main__":
     application.add_handler(CommandHandler("score", score_command))
     application.add_handler(CommandHandler("leaderboard", leaderboard_command))
     application.add_handler(CommandHandler("solution", solution_command))
+    application.add_handler(CommandHandler("remove", remove_command))
 
     # Conversation handlers
     application.add_handler(challenge_conversation_handler)

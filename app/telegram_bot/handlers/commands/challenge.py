@@ -80,7 +80,10 @@ async def send_exercise(
     latex_to_png(exercise_text, image_path)
 
     # Send the exercise to the user
-    reply_keyboard = [["Next trial", "Give me the answer!"], ["Give me some rest"]]
+    reply_keyboard = [
+        ["Next trial", "Give me the answer!"],
+        ["Give me some rest"],
+    ]
 
     await update.message.reply_text(
         CHALLENGE_MESSAGE,
@@ -92,6 +95,8 @@ async def send_exercise(
         ),
     )
     await update.message.reply_chat_action("upload_photo")
+    section_title = section_title.replace("-", "\-")
+    paragraph_title = paragraph_title.replace("-", "\-")
     await update.message.reply_photo(
         photo=image_path,
         caption=f"\#trial{exercise_id}\n🔴 *{section_title}*\n🟡 _{paragraph_title}_",

@@ -1,5 +1,6 @@
+" Command to remove the last solved exercise. "
 import logging
-from telegram import Update
+from telegram import Update, ReplyKeyboardMarkup
 from telegram.ext import ContextTypes
 from sqlalchemy.exc import NoResultFound
 from app.database.quieries.queries import remove_last_solved_exercise
@@ -18,13 +19,35 @@ async def remove_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
     )
     try:
         exercise_id = remove_last_solved_exercise(update.effective_user.id)
-        message = f"You think that was just a luck? Okay, try again! I take back the casuality for #{exercise_id}"
-        await update.message.reply_text(message)
-        return "TRIAL"
+        message = f"You think that was just a luck? Okay, try again! I take back the casuality for #trial{exercise_id}"
+        reply_keyboard = [["Next trial", "Give me some rest"]]
+        await update.message.reply_text(
+            message,
+            reply_markup=(
+                ReplyKeyboardMarkup(
+                    reply_keyboard,
+                    resize_keyboard=True,
+                )
+                if not update.message.entities
+                else None
+            ),
+        )
+        return "SOLVED"
     except NoResultFound as e:
         logging.error("Error while removing the last solved exercise: %s", e)
         message = (
             "What is there for me to take back? You haven't overcome any trials yet."
         )
-        await update.message.reply_text(message)
+        reply_keyboard = [["Next trial", "Give me some rest"]]
+        await update.message.reply_text(
+            message,
+            reply_markup=(
+                ReplyKeyboardMarkup(
+                    reply_keyboard,
+                    resize_keyboard=True,
+                )
+                if not update.message.entities
+                else None
+            ),
+        )
         return "SOLVED"
