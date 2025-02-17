@@ -70,6 +70,21 @@ def get_random_exercise(
         return exercise.id, exercise.contents, exercise.paragraph.title
 
 
+def get_current_exercise(telegram_id: str) -> Tuple[int, str] | None:
+    """
+    Get the last exercise that the user tried
+    Args:
+        telegram_id (str): Telegram's user id
+    Returns:
+        Tuple[int, str] | None: Exercise id and contents
+    """
+    with session_scope() as session:
+        user = User.user_by_telegram_id(telegram_id, session)
+        if user.last_trial_id is None:
+            return None
+        return user.last_trial_id, user.exercise.contents, user.exercise.paragraph.title
+
+
 def update_users_exercise(telegram_id: str, exercise_id: int) -> None:
     """
     Update the last exercise that the user tried
