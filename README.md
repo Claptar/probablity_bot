@@ -9,5 +9,6 @@ The bot has the following commands:
 - `/help` - Get help
 - `/challenge` - Get a trial
 - `/solution` - Get the solution for the last trial
+- `/select` - Choose trials
 - `/score` - Get your casuality points score
 - `/leaderboard` - Get the leaderboard of best challengers
