@@ -2,10 +2,10 @@
 from app import config
 from app.parsers import parse_sections, get_paragraphs, parse_exercises, get_exercises
 from app.database.models import Solution, Section
-from app.database.quieries.utils import session_scope
+from app.database.queries.utils import session_scope
 from app.database.models import Base
-from app.database.quieries.utils import engine
-from app.database.quieries.table_populate import add_paragraph, add_exercise
+from app.database.queries.utils import engine
+from app.database.queries.table_populate import add_paragraph, add_exercise
 
 
 def initialize_database():

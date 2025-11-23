@@ -10,8 +10,8 @@ from app.database.models import (
     SolvedExercise,
     SelectedParagraph,
 )
-from app.database.quieries.utils import session_scope
-from app.database.quieries.queries import update_user_score
+from app.database.queries.utils import session_scope
+from app.database.queries.queries import update_user_score
 
 
 def add_user(first_name: str, telegram_id: str, username: str) -> User:

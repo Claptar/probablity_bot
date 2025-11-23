@@ -12,8 +12,8 @@ from app.database.models import (
     SelectedParagraph,
     SolvedExercise,
 )
-from app.database.quieries.utils import session_scope
-from app.database.quieries.cache import cache_region
+from app.database.queries.utils import session_scope
+from app.database.queries.cache import cache_region
 
 
 def get_random_exercise(
