@@ -3,7 +3,7 @@ from string import Template
 from telegram import Update
 from telegram.ext import ContextTypes
 from telegram.constants import ParseMode
-from app.database.quieries.queries import get_user_score, count_solved_exercises
+from app.database.queries.queries import get_user_score, count_solved_exercises
 
 SCORE_MESSAGE = Template(
     "Let me see\.\. Hmm\.\. Through you challenges you have gained *$value points* of casuality\! 🌀🔢\n\n __*Number of solved trials by category:*__\n$table"

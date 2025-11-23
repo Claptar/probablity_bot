@@ -1,9 +1,35 @@
 import os
+import re
 import shutil
 import subprocess
 import tempfile
 from string import Template
 import logging
+
+
+def substitute(match):
+    """
+    Substitute image links with local paths
+    Args:
+        match (re.Match): Regular expression match object
+    Returns:
+        str: Local path to the image
+    """
+    path = "/app/data/images"
+    return r"\includegraphics[height=0.8em]{" + path + "/" + match.group(3) + "}"
+
+
+def replace_image_links(markdown_text) -> str:
+    """
+    Replace image links in Markdown text with local paths
+    Args:
+        markdown_text (str): Markdown text with image links
+        image_dir (str): Directory containing images
+    Returns:
+        str: Markdown text with local image paths
+    """
+    pattern = re.compile(r"(!\[\]\()(https:.*)/(2024_08_04.*\.jpg)(.*\))")
+    return pattern.sub(substitute, markdown_text)
 
 
 def latex_to_png(latex_snippet, output_png="output.png"):
@@ -13,12 +39,16 @@ def latex_to_png(latex_snippet, output_png="output.png"):
         latex_snippet (str): LaTeX code to render
         output_png (str): Output PNG file path
     """
+    # Replace Markdown image links with local paths
+    latex_snippet = replace_image_links(latex_snippet)
+
     # Create a minimal LaTeX document template.
     # Using the 'standalone' or 'preview' class helps produce tightly cropped output.
     doc_template = Template(
         r"""
     \documentclass[preview,border={0.5cm 2cm 0.5cm 2cm}]{standalone}
     \usepackage{amsmath,amssymb}
+    \usepackage{graphicx}
     \begin{document}
     \vspace*{1cm}  % Add vertical space at the top
     $latex_snippet

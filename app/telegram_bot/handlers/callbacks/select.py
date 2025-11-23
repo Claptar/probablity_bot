@@ -2,10 +2,10 @@
 from string import Template
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, CallbackQuery
 from telegram.ext import ContextTypes, ConversationHandler
-from app.database.quieries.table_populate import (
+from app.database.queries.table_populate import (
     add_selected_paragraph,
 )
-from app.database.quieries.queries import (
+from app.database.queries.queries import (
     select_all_section_paragraphs,
     get_selected_sections,
     get_selected_section_paragraphs,

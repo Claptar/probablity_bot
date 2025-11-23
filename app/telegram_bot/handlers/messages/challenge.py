@@ -3,7 +3,7 @@ import logging
 from telegram import Update, ReplyKeyboardMarkup, ReplyKeyboardRemove
 from telegram.ext import ContextTypes, ConversationHandler
 from telegram.constants import ParseMode
-from app.database.quieries.table_populate import add_solved_exercise
+from app.database.queries.table_populate import add_solved_exercise
 
 
 async def solved(update: Update, context: ContextTypes.DEFAULT_TYPE):

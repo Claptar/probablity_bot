@@ -2,7 +2,7 @@
 from telegram import Update
 from telegram.ext import ContextTypes
 from telegram.constants import ParseMode
-from app.database.quieries.queries import get_user_leaderboard
+from app.database.queries.queries import get_user_leaderboard
 
 
 async def leaderboard_command(update: Update, context: ContextTypes.DEFAULT_TYPE):

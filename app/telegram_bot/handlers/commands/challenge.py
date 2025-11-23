@@ -5,7 +5,7 @@ import tempfile
 from telegram import Update, ReplyKeyboardMarkup
 from telegram.ext import ContextTypes
 from telegram.constants import ParseMode
-from app.database.quieries.queries import (
+from app.database.queries.queries import (
     get_random_exercise,
     update_users_exercise,
     get_current_exercise,

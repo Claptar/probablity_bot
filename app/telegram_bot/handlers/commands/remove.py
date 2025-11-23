@@ -3,7 +3,7 @@ import logging
 from telegram import Update, ReplyKeyboardMarkup
 from telegram.ext import ContextTypes
 from sqlalchemy.exc import NoResultFound
-from app.database.quieries.queries import remove_last_solved_exercise
+from app.database.queries.queries import remove_last_solved_exercise
 
 
 async def remove_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> str:

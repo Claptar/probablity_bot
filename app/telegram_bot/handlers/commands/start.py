@@ -2,7 +2,7 @@
 from telegram import Update
 from telegram.ext import ContextTypes
 from telegram.constants import ParseMode
-from app.database.quieries.table_populate import add_user
+from app.database.queries.table_populate import add_user
 
 
 START_MESSAGE = r"""

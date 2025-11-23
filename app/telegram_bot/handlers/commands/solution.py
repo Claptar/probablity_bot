@@ -6,7 +6,7 @@ from telegram import Update, ReplyKeyboardMarkup
 from telegram.ext import ContextTypes, ConversationHandler
 from telegram.constants import ParseMode
 from sqlalchemy.exc import NoResultFound
-from app.database.quieries.queries import user_exercise_soluiton
+from app.database.queries.queries import user_exercise_soluiton
 from app.utils import latex_to_png
 
 

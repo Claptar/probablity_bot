@@ -1,7 +1,7 @@
 " Select command handler "
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import CallbackContext
-from app.database.quieries.queries import get_selected_sections
+from app.database.queries.queries import get_selected_sections
 from app.telegram_bot.handlers.utils import get_section_keyboard
 
 SELECT_MESSAGE = "So, you want to choose trials you are more confident in\. Fine, here is a rough categories of my trials\. Make your choice\!"
