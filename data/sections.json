@@ -1,0 +1,50 @@
+[
+    {
+        "number": 1,
+        "title": "Introduction to Probability"
+    },
+    {
+        "number": 2,
+        "title": "Conditional Probability"
+    },
+    {
+        "number": 3,
+        "title": "Random Variables and Distributions"
+    },
+    {
+        "number": 4,
+        "title": "Expectation"
+    },
+    {
+        "number": 5,
+        "title": "Special Distributions"
+    },
+    {
+        "number": 6,
+        "title": "Large Random Samples"
+    },
+    {
+        "number": 7,
+        "title": "Estimation"
+    },
+    {
+        "number": 8,
+        "title": "Sampling Distributions of Estimators"
+    },
+    {
+        "number": 9,
+        "title": "Testing Hypotheses"
+    },
+    {
+        "number": 10,
+        "title": "Categorical Data and Nonparametric Methods"
+    },
+    {
+        "number": 11,
+        "title": "Linear Statistical Models"
+    },
+    {
+        "number": 12,
+        "title": "Simulation"
+    }
+]

@@ -1,0 +1,38 @@
+[
+    {
+        "name": "Definition"
+    },
+    {
+        "name": "Example"
+    },
+    {
+        "name": "Theorem"
+    },
+    {
+        "name": "Figure"
+    },
+    {
+        "name": "Condition"
+    },
+    {
+        "name": "Exercise"
+    },
+    {
+        "name": "Axiom"
+    },
+    {
+        "name": "Table"
+    },
+    {
+        "name": "Property"
+    },
+    {
+        "name": "Corollary"
+    },
+    {
+        "name": "Equation"
+    },
+    {
+        "name": "Assumption"
+    }
+]
