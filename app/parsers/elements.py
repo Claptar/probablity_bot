@@ -13,7 +13,7 @@ ELEMENT_PATTERN = re.compile(
 )
 
 
-def parse_title(text: str) -> re.Match:
+def match_title(text: str) -> re.Match:
     """
     Parse titles from a subsection text
     Args:
@@ -24,7 +24,7 @@ def parse_title(text: str) -> re.Match:
     return TITLE_PATTERN.match(text)
 
 
-def parse_elements(text: str) -> Iterator[re.Match]:
+def match_elements(text: str) -> Iterator[re.Match]:
     """
     Parse elements from a subsection text
     Args:

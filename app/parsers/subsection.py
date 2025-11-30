@@ -16,7 +16,7 @@ SUBSECTION_PATTERN = re.compile(
 )
 
 
-def parse_subsections(text: str) -> Iterator[re.Match]:
+def match_subsections(text: str) -> Iterator[re.Match]:
     """
     Parse subsections from a book
     Args:
