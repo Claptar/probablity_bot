@@ -15,7 +15,7 @@ from app.database.models import (
     Element,
     ElementLinks,
 )
-from app.parsers.elements import parse_title, parse_elements
+from app.parsers import match_title, match_elements, match_subsections, match_exercises, get_subsection_data
 from app.database.queries.utils import engine, session_scope
 
 logging.basicConfig(level=logging.INFO)
@@ -66,6 +66,74 @@ def populate_from_json(json_file: str, cls: Base) -> None:
     )
 
 
+def add_element(session, number:  int | str, content: str, section_number: int | str=None, subsection_number: int | str=None, subsection_id: int | str=None, type: str=None) -> bool:
+    """
+    Add a new element to the database.
+    Args:
+        session: SQLAlchemy session object.
+        number (int | str): Element number.
+        content (str): Content of the element.
+        section_number (int | str): Section number the element belongs to.
+        subsection_number (int | str): Subsection number the element belongs to.
+        subsection_id (int | str): ID of the subsection the element belongs to.
+        type (str): element type.
+
+    Returns:
+        bool: True if a new Element was created, False if it already existed.
+    """
+    # Get subsection_id if not provided
+    if subsection_id is None and (section_number is None or subsection_number is None):
+        raise ValueError("Either subsection_id or both section_number and subsection_number must be provided.")
+    elif subsection_id is None:
+        subsection = (
+            session.query(Subsection)
+            .join(Section)
+            .filter(
+                Section.number == section_number,
+                Subsection.number == subsection_number,
+            )
+            .one()
+        )
+        subsection_id = subsection.id
+    
+    # Get or create element type
+    element_type = (
+        session.query(ElementTypes)
+        .filter_by(name=type)
+        .one_or_none()
+    )
+    if element_type is None:
+        logging.warning(
+            "Element type %s does not exist. Creating a new one.",
+            type,
+        )
+        element_type = ElementTypes(name=type)
+        session.add(element_type)
+        session.flush()  # to get element_type.id
+    
+    # Create element if does not exist
+    element = (
+        session.query(Element)
+        .filter_by(
+            subsection_id=subsection_id,
+            type_id=element_type.id,
+            number=number,
+        )
+        .one_or_none()
+    )
+    exists = element is not None
+    if not exists:
+        element = Element(
+            subsection_id=subsection_id,
+            type_id=element_type.id,
+            number=number,
+            content=content,
+        )
+        session.add(element)
+    return not exists
+
+
+
 def populate_subsections_and_elements(dirpath: str) -> None:
     """
     Populate the database with subsections and elements.
@@ -86,8 +154,8 @@ def populate_subsections_and_elements(dirpath: str) -> None:
             content = f.read()
 
         # parse elements and title
-        title_match = parse_title(title)
-        element_matches = parse_elements(content)
+        title_match = match_title(title)
+        element_matches = match_elements(content)
 
         section_number, subsection_number = map(
             int, title_match.group("number").split(".")
@@ -118,45 +186,58 @@ def populate_subsections_and_elements(dirpath: str) -> None:
 
             # create elements
             for element_match in element_matches:
-                # get or create element type
-                element_type = (
-                    session.query(ElementTypes)
-                    .filter_by(name=element_match.group("type"))
-                    .one_or_none()
+                status = add_element(
+                    session,
+                    number=element_match.group("number").split(".")[-1],
+                    content=element_match.group("content").strip(),
+                    subsection_id=subsection.id,
+                    type=element_match.group("type").lower(),
                 )
-                if element_type is None:
-                    logging.warning(
-                        "Element type %s does not exist. Creating a new one.",
-                        element_match.group("type"),
-                    )
-                    element_type = ElementTypes(name=element_match.group("type"))
-                    session.add(element_type)
-                    session.flush()  # to get element_type.id
-
-                # create element if not exists
-                element = (
-                    session.query(Element)
-                    .filter_by(
-                        subsection_id=subsection.id,
-                        type_id=element_type.id,
-                        number=element_match.group("number").split(".")[-1],
-                    )
-                    .one_or_none()
-                )
-
-                if element is None:
-                    element = Element(
-                        subsection_id=subsection.id,
-                        type_id=element_type.id,
-                        number=element_match.group("number").split(".")[-1],
-                        content=element_match.group("content").strip(),
-                    )
-                    session.add(element)
+                if status:
                     new_element_count += 1
 
     logging.info("Subsections and elements populated successfully.")
     logging.info("New subsections added: %d", new_subsection_count)
     logging.info("New elements added: %d", new_element_count)
+
+
+def populate_solutions(filepath: str) -> None:
+    """
+    Populate the database with solutions from a solution mannual file.
+    Args:
+        filepath (str): Path to the solution mannual file in markdown format
+    """
+    # read the solution mannual file
+    logging.debug("Reading solution mannual from %s", filepath)
+    with open(filepath, "r", encoding="utf-8") as file:
+        contents = file.read()
+    
+    # parse solution subsections
+    subsection_matches = match_subsections(contents)
+    
+    # add solutions to the database
+    new_solution_count = 0
+    logging.info("Populating solutions into the database...")
+    with session_scope() as session:
+        for subsection_match in subsection_matches:
+            subsection_data = get_subsection_data(subsection_match)
+            for exercise_match in match_exercises(subsection_data["exercises"]):
+                # add solution to the database
+                status = add_element(
+                    session,
+                    number=exercise_match.group("number"),
+                    content=exercise_match.group("contents").strip(),
+                    section_number=subsection_data["section"],
+                    subsection_number=subsection_data["number"],
+                    type="solution",
+                )
+                if status:
+                    new_solution_count += 1
+    logging.info("Solutions populated successfully. New solutions added: %d", new_solution_count)
+    
+
+
+    
 
 
 def main() -> None:
@@ -167,6 +248,7 @@ def main() -> None:
     populate_from_json(config.SECTION_LIST, Section)
     populate_from_json(config.ELEMENT_TYPES_LIST, ElementTypes)
     populate_subsections_and_elements(config.SUBSECTION_FILES_DIR)
+    populate_solutions(config.SOLUTION_MANNUAL_FILE)
 
 
 if __name__ == "__main__":
