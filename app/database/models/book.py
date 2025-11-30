@@ -7,6 +7,16 @@ from app.database.models.base import Base
 
 class Section(Base):
     __tablename__ = "sections"
+    __table_args__ = (
+        UniqueConstraint(
+            "number",
+            name="_section_number_uc",
+        ),
+        UniqueConstraint(
+            "title",
+            name="_section_title_uc",
+        ),
+    )
 
     # Attributes
     id = Column(Integer, primary_key=True)
@@ -24,6 +34,18 @@ class Section(Base):
 
 class Subsection(Base):
     __tablename__ = "subsections"
+    __table_args__ = (
+        UniqueConstraint(
+            "section_id",
+            "number",
+            name="_subsection_section_number_uc",
+        ),
+        UniqueConstraint(
+            "section_id",
+            "title",
+            name="_subsection_section_title_uc",
+        ),
+    )
 
     # Attributes
     id = Column(Integer, primary_key=True)
@@ -47,6 +69,12 @@ class Subsection(Base):
 
 class ElementTypes(Base):
     __tablename__ = "element_types"
+    __table_args__ = (
+        UniqueConstraint(
+            "name",
+            name="_element_type_name_uc",
+        ),
+    )
 
     # Attributes
     id = Column(Integer, primary_key=True)
@@ -95,6 +123,7 @@ class Element(Base):
     links = relationship(
         "ElementLinks",
         back_populates="source_element",
+        foreign_keys="[ElementLinks.source_element_id]",
         uselist=True,
         cascade="all, delete",
     )
@@ -107,8 +136,8 @@ class ElementLinks(Base):
     __tablename__ = "element_links"
     __table_args__ = (
         UniqueConstraint(
-            "element_id",
-            "linked_element_id",
+            "source_element_id",
+            "target_element_id",
             name="_element_link_uc",
         ),
     )
