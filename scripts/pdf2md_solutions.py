@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import os
-import time
 import pathlib
+import time
 from dotenv import load_dotenv
 from tqdm import tqdm
 from google import genai
@@ -13,11 +13,11 @@ client = genai.Client()
 
 # List of paragraphs to process
 paragraphs = [
-    '1.1', '1.2', '1.3', '1.4', '1.5', '1.6', '1.7', '1.8', '1.9', '1.10', '1.11', '1.12',
+    '1.2', '1.4', '1.5', '1.6', '1.7', '1.8', '1.9', '1.10', '1.11', '1.12',
     '2.1', '2.2', '2.3', '2.4', '2.5',
     '3.1', '3.2', '3.3', '3.4', '3.5', '3.6', '3.7', '3.8', '3.9', '3.10', '3.11',
     '4.1', '4.2', '4.3', '4.4', '4.5', '4.6', '4.7', '4.8', '4.9',
-    '5.1', '5.2', '5.3', '5.4', '5.5', '5.6', '5.7', '5.8', '5.9', '5.10', '5.11',
+    '5.2', '5.3', '5.4', '5.5', '5.6', '5.7', '5.8', '5.9', '5.10', '5.11',
     '6.1', '6.2', '6.3', '6.4', '6.5',
     '7.1', '7.2', '7.3', '7.4', '7.5', '7.6', '7.7', '7.8', '7.9', '7.10',
     '8.1', '8.2', '8.3', '8.4', '8.5', '8.6', '8.7', '8.8', '8.9',
@@ -32,11 +32,11 @@ for paragraph in tqdm(paragraphs):
     i, k = paragraph.split('.')
 
     # Retry logic with 3 attempts
-    max_retries = 5
+    max_retries = 3
     for attempt in range(max_retries):
         try:
             # Retrieve and encode the PDF byte
-            filepath = pathlib.Path(f'data/pdfs/section{i}.pdf')
+            filepath = pathlib.Path(f'data/pdfs/solution_section{i}.pdf')
 
             # Upload the PDF using the File API
             sample_file = client.files.upload(
@@ -51,8 +51,8 @@ for paragraph in tqdm(paragraphs):
             )
 
             # Save the generated markdown to a file
-            os.makedirs("data/parsed/main", exist_ok=True)
-            with open(f"data/parsed/main/paragraph{paragraph}.md", "w") as f:
+            os.makedirs("data/parsed/solutions", exist_ok=True)
+            with open(f"data/parsed/solutions/paragraph{paragraph}.md", "w") as f:
                 f.write(response.text)
             
             # Success - break out of retry loop
